@@ -1,0 +1,13 @@
+const APIRouteCheckOrgAvailability = '/api/organization/check';
+const APIRouteRegisterNewUser = '/api/auth/register';
+const APIRouteLogin = '/api/auth/login';
+
+// profile
+const APIRouteProfile = '/api/user/profile';
+const APIRouteChangePassword = '/api/user/change-password';
+
+// Room
+const APIRouteRoom = '/api/rooms';
+const APIRouteGetMyRooms = '/api/rooms/my-rooms';
+const APIRouteJoinRoom = '/api/rooms/join';
+const APIRouteRoomMember = '/api/rooms/member';
