@@ -1,4 +1,4 @@
-const APIRouteCheckOrgAvailability = '/api/organization/check';
+// Auth
 const APIRouteRegisterNewUser = '/api/auth/register';
 const APIRouteLogin = '/api/auth/login';
 
@@ -11,3 +11,9 @@ const APIRouteRoom = '/api/rooms';
 const APIRouteGetMyRooms = '/api/rooms/my-rooms';
 const APIRouteJoinRoom = '/api/rooms/join';
 const APIRouteRoomMember = '/api/rooms/member';
+const APIRouteArchiveRoom = '/api/rooms/archive';
+const APIRouteRemoveMember = '/api/rooms/member/remove';
+
+// Organization
+const APIRouteCheckOrgAvailability = '/api/organization/check';
+const APIRouteGetAllOrgMembers = '/api/organization/members';

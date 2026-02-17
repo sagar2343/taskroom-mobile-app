@@ -1,4 +1,5 @@
 import 'package:field_work/config/data/local/app_data.dart';
+import 'package:field_work/features/member/view/screen/all_org_member_screen.dart';
 import 'package:flutter/material.dart';
 import '../../../core/utils/helpers.dart';
 import '../data/member_datasource.dart';
@@ -45,6 +46,7 @@ class MemberTabController {
       }
 
       if (response.success ?? false) {
+        members.clear();
         members = response.data?.members ?? [];
         totalMembers = response.data?.totalMembers ?? 0;
       } else {
@@ -74,12 +76,8 @@ class MemberTabController {
   void onAddMember() {
     if (!isManager) return;
 
-    // TODO: Implement add member functionality
-    Helpers.showSnackBar(
-      context,
-      'Add member feature coming soon!',
-      type: SnackType.normal,
-    );
+    Navigator.push(context, MaterialPageRoute(builder: (context)=>
+    AllOrgMemberScreen())).then((_)=> onRefresh());
   }
 
   void onRemoveMember(RoomMemberItem member) {
@@ -116,15 +114,45 @@ class MemberTabController {
   }
 
   Future<void> _removeMember(RoomMemberItem member) async {
-    // TODO: Implement API call to remove member
-    Helpers.showSnackBar(
-      context,
-      'Remove member API coming soon!',
-      type: SnackType.normal,
-    );
+    isLoading = true;
+    reloadData();
+    try {
+      final response = await MemberDatasource().removeMember(
+        roomId, member.user?.id ?? '0'
+      );
+      if (response == null) {
+        Helpers.showSnackBar(
+          context,
+          'Something went wrong!',
+          type: SnackType.error,
+        );
+        return;
+      }
 
-    // After successful removal, refresh the list
-    // await getMembers();
+      if (response['success'] ?? false) {
+        Helpers.showSnackBar(
+          context,
+          response['message'] ?? 'Successfully removed member',
+          type: SnackType.success,
+        );
+      } else {
+        Helpers.showSnackBar(
+          context,
+          response['message'] ?? 'Failed to remove members',
+          type: SnackType.error,
+        );
+      }
+    } catch (e) {
+      debugPrint('Remove members error: $e');
+      Helpers.showSnackBar(
+        context,
+        'Failed to Remove member',
+        type: SnackType.error,
+      );
+    } finally {
+      isLoading = false;
+      onRefresh();
+    }
   }
 
   String getMemberRoleDisplay(String? role) {

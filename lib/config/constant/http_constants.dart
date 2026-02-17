@@ -10,8 +10,8 @@ class HttpConstants {
     if (Platform.isAndroid) {
       // Android Emulator
       // return 'http://10.0.2.2:3000';
-      // return 'http://192.168.0.167:3000';
-      return 'http://192.168.43.214:3000';
+      return 'http://192.168.0.167:3000';
+      // return 'http://192.168.43.214:3000';
     } else if (Platform.isIOS) {
       // iOS Simulator
       return 'http://localhost:3000';

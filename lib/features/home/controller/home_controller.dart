@@ -172,6 +172,7 @@ class HomeController {
 
   void onRoomTapped(RoomModel room) {
     if (room.id == null) return;
+    if (userData?.role?.toLowerCase() != 'manager' && (room.isArchived ?? false)) return;
     Navigator.push(
       context,
       MaterialPageRoute(

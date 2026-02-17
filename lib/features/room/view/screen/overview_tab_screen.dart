@@ -9,12 +9,16 @@ class OverviewTabScreen extends StatelessWidget {
   final RoomModel room;
   final VoidCallback onRefresh;
   final String Function(DateTime) formatDate;
+  final VoidCallback? onDeleteRoom;
+  final bool isManager;
 
   const OverviewTabScreen({
     super.key,
     required this.room,
     required this.onRefresh,
     required this.formatDate,
+    required this.onDeleteRoom,
+    required this.isManager,
   });
 
   @override
@@ -50,30 +54,32 @@ class OverviewTabScreen extends StatelessWidget {
                     'Maximum Members',
                     '${room.settings?.maxMembers ?? 0}',
                   ),
-                  const SizedBox(height: 12),
-                  _buildSettingItem(
-                    context,
-                    Icons.person_add_outlined,
-                    'Auto Accept Members',
-                    (room.settings?.autoAcceptMembers ?? false)
-                        ? 'Enabled'
-                        : 'Disabled',
-                    color: (room.settings?.autoAcceptMembers ?? false)
-                        ? Pallete.successColor
-                        : Pallete.errorColor,
-                  ),
-                  const SizedBox(height: 12),
-                  _buildSettingItem(
-                    context,
-                    Icons.visibility_outlined,
-                    'Members Can See Each Other',
-                    (room.settings?.allowMembersToSeeEachOther ?? false)
-                        ? 'Enabled'
-                        : 'Disabled',
-                    color: (room.settings?.allowMembersToSeeEachOther ?? false)
-                        ? Pallete.successColor
-                        : Pallete.errorColor,
-                  ),
+                  if (isManager) ...[
+                    const SizedBox(height: 12),
+                    _buildSettingItem(
+                      context,
+                      Icons.person_add_outlined,
+                      'Auto Accept Members',
+                      (room.settings?.autoAcceptMembers ?? false)
+                          ? 'Enabled'
+                          : 'Disabled',
+                      color: (room.settings?.autoAcceptMembers ?? false)
+                          ? Pallete.successColor
+                          : Pallete.errorColor,
+                    ),
+                    const SizedBox(height: 12),
+                    _buildSettingItem(
+                      context,
+                      Icons.visibility_outlined,
+                      'Members Can See Each Other',
+                      (room.settings?.allowMembersToSeeEachOther ?? false)
+                          ? 'Enabled'
+                          : 'Disabled',
+                      color: (room.settings?.allowMembersToSeeEachOther ?? false)
+                          ? Pallete.successColor
+                          : Pallete.errorColor,
+                    ),
+                  ],
                   const SizedBox(height: 24),
                   IconBoxHeader(
                     icon: Icons.info_outline,
@@ -105,6 +111,13 @@ class OverviewTabScreen extends StatelessWidget {
                       formatDate(room.updatedAt!),
                     ),
                   ],
+
+                  // Delete Room Button (Manager Only)
+                  if (isManager && onDeleteRoom != null) ...[
+                    const SizedBox(height: 32),
+                    _buildDeleteButton(context),
+                  ],
+
                   const SizedBox(height: 20),
                 ],
               ),
@@ -551,6 +564,103 @@ class OverviewTabScreen extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildDeleteButton(BuildContext context) {
+    final isArchived = room.isArchived ?? false;
+    final actionColor = isArchived ? Pallete.successColor : Colors.red;
+    final actionText = isArchived ? 'Unarchive Room' : 'Archive Room';
+    final actionIcon = isArchived ? Icons.unarchive : Icons.archive;
+    final descriptionText = isArchived
+        ? 'Restore this room to active status'
+        : 'Hide this room from members';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            actionColor.withValues(alpha: 0.15),
+            actionColor.withValues(alpha: 0.08),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: actionColor.withValues(alpha: 0.3),
+          width: 1.5,
+        ),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: actionColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  isArchived ? Icons.info_outline : Icons.warning_rounded,
+                  color: actionColor,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isArchived ? 'Restore Room' : 'Danger Zone',
+                      style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: actionColor,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      descriptionText,
+                      style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.6),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: onDeleteRoom,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: actionColor,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 0,
+              ),
+              icon: Icon(actionIcon, size: 22),
+              label: Text(
+                actionText,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -119,4 +119,26 @@ class RoomDataSource {
       return null;
     }
   }
+
+  Future<Map<String, dynamic>?> archiveRoom({required String roomId,
+    required bool isArchive}) async {
+    try {
+      final url = Uri.parse('${HttpConstants.getBaseURL}$APIRouteArchiveRoom/$roomId');
+      final body = {
+        "archive": isArchive
+      };
+      final response = await _client.patch(
+        url,
+        headers: HttpConstants.getHttpHeaders(token),
+        body: jsonEncode(body)
+      );
+
+      final jsonResponse = jsonDecode(response.body);
+      return jsonResponse;
+
+    } catch (e) {
+      debugPrint(e.toString());
+      return null;
+    }
+  }
 }

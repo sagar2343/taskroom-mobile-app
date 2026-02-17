@@ -34,9 +34,12 @@ class RoomCard extends StatelessWidget {
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [
+                colors: !(room.isArchived ?? false) ? [
                   Pallete.primaryColor.withValues(alpha: 0.1),
                   Pallete.primaryColor.withValues(alpha: 0.05),
+                ] : [
+                  Colors.grey.shade300,
+                  Colors.grey.shade200
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,

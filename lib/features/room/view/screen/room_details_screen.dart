@@ -115,44 +115,46 @@ class _RoomDetailScreenState extends State<RoomDetailScreen>
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60),
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Theme.of(context)
-                    .colorScheme
-                    .outline
-                    .withValues(alpha: 0.2),
-              ),
-            ),
-            child: TabBar(
-              controller: _tabController,
-              indicator: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Pallete.primaryColor,
-                    Pallete.primaryLightColor,
-                  ],
+          child: AnimatedScreenWrapper(
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .outline
+                      .withValues(alpha: 0.2),
                 ),
-                borderRadius: BorderRadius.circular(10),
               ),
-              labelColor: Colors.white,
-              unselectedLabelColor: Theme.of(context)
-                  .colorScheme
-                  .onSurface
-                  .withValues(alpha: 0.6),
-              indicatorSize: TabBarIndicatorSize.tab,
-              dividerColor: Colors.transparent,
-              labelStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                fontWeight: FontWeight.w600,
+              child: TabBar(
+                controller: _tabController,
+                indicator: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Pallete.primaryColor,
+                      Pallete.primaryLightColor,
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                labelColor: Colors.white,
+                unselectedLabelColor: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.6),
+                indicatorSize: TabBarIndicatorSize.tab,
+                dividerColor: Colors.transparent,
+                labelStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+                tabs: const [
+                  Tab(text: 'Overview'),
+                  Tab(text: 'Tasks'),
+                  Tab(text: 'Members'),
+                ],
               ),
-              tabs: const [
-                Tab(text: 'Overview'),
-                Tab(text: 'Tasks'),
-                Tab(text: 'Members'),
-              ],
             ),
           ),
         ),
@@ -165,6 +167,8 @@ class _RoomDetailScreenState extends State<RoomDetailScreen>
               room: _controller.room!,
               onRefresh: _controller.onRefresh,
               formatDate: _controller.formatDate,
+              onDeleteRoom: _controller.isManager ? _controller.onArchiveRoom : null,
+              isManager: _controller.isManager,
             ),
             const TasksTabScreen(),
             MemberTabScreen(roomId: widget.roomId),

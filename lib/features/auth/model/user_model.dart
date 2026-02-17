@@ -38,11 +38,16 @@ class UserModel {
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
+    OrganizationModel? org;
+    if (json['organization'] is Map<String, dynamic>) {
+      org = OrganizationModel.fromJson(json['organization']);
+    } else if (json['organization'] is String) {
+      org = OrganizationModel(id: json['organization']);
+    }
+
     return UserModel(
       id: json['_id'],
-      organization: json['organization'] != null
-          ? OrganizationModel.fromJson(json['organization'])
-          : null,
+      organization: org,
       username: json['username'],
       mobile: json['mobile'],
       role: json['role'],
