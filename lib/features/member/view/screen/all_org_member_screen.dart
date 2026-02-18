@@ -1,12 +1,12 @@
 import 'package:field_work/config/theme/app_pallete.dart';
 import 'package:field_work/features/member/controller/all_org_member_controller.dart';
 import 'package:flutter/material.dart';
-
 import '../../../widgets/animated_screen_wrapper.dart';
 import '../widget/member_card.dart';
 
 class AllOrgMemberScreen extends StatefulWidget {
-  const AllOrgMemberScreen({super.key});
+  final String roomId;
+  const AllOrgMemberScreen({super.key, required this.roomId});
 
   @override
   State<AllOrgMemberScreen> createState() => _AllOrgMemberScreenState();
@@ -14,7 +14,6 @@ class AllOrgMemberScreen extends StatefulWidget {
 
 class _AllOrgMemberScreenState extends State<AllOrgMemberScreen> {
   late final AllOrgMemberController _controller;
-  bool _isSearching = false;
 
   @override
   void initState() {
@@ -22,6 +21,7 @@ class _AllOrgMemberScreenState extends State<AllOrgMemberScreen> {
     _controller = AllOrgMemberController(
       context: context,
       reloadData: reloadData,
+      roomId: widget.roomId,
     );
     _controller.init();
   }
@@ -56,7 +56,7 @@ class _AllOrgMemberScreenState extends State<AllOrgMemberScreen> {
                       ),
                     )
                     :  Expanded(
-                      child: _controller.members.isEmpty 
+                      child: _controller.members.isEmpty
                           ? AnimatedScreenWrapper(child: _buildEmptyState())
                           : AnimatedScreenWrapper(child: _buildMemberList()),
                 )
@@ -64,9 +64,6 @@ class _AllOrgMemberScreenState extends State<AllOrgMemberScreen> {
             ),
           ),
         ),
-        // body: _controller.isLoading && _controller.members.isEmpty
-        //     ? _buildLoadingState()
-        //     : _buildContent(),
       ),
     );
   }
@@ -87,6 +84,9 @@ class _AllOrgMemberScreenState extends State<AllOrgMemberScreen> {
           memberName: _controller.getInitials(member.fullName),
           memberRole: _controller.getRoleDisplay(member.role),
           member: member,
+          onAdd:() => _controller.addMemberToRoom(member),
+          isInRoom: _controller.isMemberInRoom(member.id ?? ''),
+          isAdding: _controller.isAddingMember(member.id ?? ''),
         );
       },
     );

@@ -6,12 +6,18 @@ class MemberCard extends StatelessWidget {
   final String memberName;
   final String memberRole;
   final UserModel member;
+  final VoidCallback onAdd;
+  final bool isInRoom;
+  final bool isAdding;
 
   const MemberCard({
     super.key,
     required this.memberName,
     required this.memberRole,
     required this.member,
+    required this.onAdd,
+    this.isInRoom = false,
+    this.isAdding = false,
   });
 
   @override
@@ -24,14 +30,23 @@ class MemberCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
+          colors: isInRoom
+              ? [
+            // Green gradient if already in room
+            Pallete.successColor.withValues(alpha: 0.1),
+            Pallete.successColor.withValues(alpha: 0.05),
+          ]
+              : [
+            // Blue gradient if not in room
             Pallete.primaryColor.withValues(alpha: 0.08),
             Pallete.primaryColor.withValues(alpha: 0.03),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Pallete.primaryColor.withValues(alpha: 0.2),
+          color: isInRoom
+              ? Pallete.successColor.withValues(alpha: 0.3)
+              : Pallete.primaryColor.withValues(alpha: 0.2),
           width: 1.5,
         ),
       ),
@@ -45,19 +60,28 @@ class MemberCard extends StatelessWidget {
                 height: 56,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [
+                    colors: isInRoom
+                        ? [
+                      Pallete.successColor,
+                      Pallete.successColor.withValues(alpha: 0.7),
+                    ]
+                        : [
                       Pallete.primaryColor,
                       Pallete.primaryLightColor,
                     ],
                   ),
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: Pallete.primaryColor.withValues(alpha: 0.3),
+                    color: isInRoom
+                        ? Pallete.successColor.withValues(alpha: 0.3)
+                        : Pallete.primaryColor.withValues(alpha: 0.3),
                     width: 2,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Pallete.primaryColor.withValues(alpha: 0.3),
+                      color: isInRoom
+                          ? Pallete.successColor.withValues(alpha: 0.3)
+                          : Pallete.primaryColor.withValues(alpha: 0.3),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -110,7 +134,6 @@ class MemberCard extends StatelessWidget {
               ),
             ],
           ),
-
           const SizedBox(width: 16),
 
           // Member info
@@ -119,13 +142,21 @@ class MemberCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Name
-                Text(
-                  member.fullName ?? 'Unknown',
-                  style: textTheme.bodyLarge!.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        member.fullName ?? 'Unknown',
+                        style: textTheme.bodyLarge!.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    _buildActionButton(context),
+                  ],
                 ),
                 const SizedBox(height: 4),
 
@@ -200,6 +231,110 @@ class MemberCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildActionButton(BuildContext context) {
+    if (isInRoom) {
+      // Already in room - show checkmark
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: Pallete.successColor.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: Pallete.successColor.withValues(alpha: 0.3),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.check_circle,
+              size: 16,
+              color: Pallete.successColor,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              'ADDED',
+              style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                color: Pallete.successColor,
+                fontWeight: FontWeight.w700,
+                fontSize: 11,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (isAdding) {
+      // Currently adding - show loading
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: Pallete.primaryColor.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: Pallete.primaryColor.withValues(alpha: 0.3),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 14,
+              height: 14,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(Pallete.primaryColor),
+              ),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              'ADDING',
+              style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                color: Pallete.primaryColor,
+                fontWeight: FontWeight.w700,
+                fontSize: 11,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Can add - show add button
+    return InkWell(
+      onTap: onAdd,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          border: Border.all(color: Pallete.primaryColor),
+          borderRadius: BorderRadius.circular(10),
+          color: Pallete.primaryColor.withValues(alpha: 0.1),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.add_circle_outline,
+              size: 16,
+              color: Pallete.primaryColor,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              'ADD',
+              style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                color: Pallete.primaryColor,
+                fontWeight: FontWeight.w700,
+                fontSize: 11,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

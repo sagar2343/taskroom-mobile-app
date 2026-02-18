@@ -77,7 +77,7 @@ class MemberTabController {
     if (!isManager) return;
 
     Navigator.push(context, MaterialPageRoute(builder: (context)=>
-    AllOrgMemberScreen())).then((_)=> onRefresh());
+    AllOrgMemberScreen(roomId: roomId))).then((_)=> onRefresh());
   }
 
   void onRemoveMember(RoomMemberItem member) {

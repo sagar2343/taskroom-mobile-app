@@ -82,4 +82,27 @@ class MemberDatasource {
       return null;
     }
   }
+
+  Future<Map<String, dynamic>?> addMemberToRoom(
+      {required String roomId, required String userId}) async {
+    try {
+      final url = Uri.parse('${HttpConstants.getBaseURL}$APIRouteAddMemberToRoom');
+      final body = {
+        "userId": userId,
+        "roomId": roomId
+      };
+      final response = await _client.post(
+          url,
+          headers: HttpConstants.getHttpHeaders(token),
+          body: jsonEncode(body)
+      );
+
+      final jsonResponse = jsonDecode(response.body);
+      return jsonResponse;
+
+    } catch(e) {
+      debugPrint(e.toString());
+      return null;
+    }
+  }
 }

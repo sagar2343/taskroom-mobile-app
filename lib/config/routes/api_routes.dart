@@ -13,6 +13,8 @@ const APIRouteJoinRoom = '/api/rooms/join';
 const APIRouteRoomMember = '/api/rooms/member';
 const APIRouteArchiveRoom = '/api/rooms/archive';
 const APIRouteRemoveMember = '/api/rooms/member/remove';
+const APIRouteAddMemberToRoom = '/api/rooms/member/add';
+
 
 // Organization
 const APIRouteCheckOrgAvailability = '/api/organization/check';

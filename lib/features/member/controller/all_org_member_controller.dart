@@ -4,12 +4,14 @@ import 'package:flutter/material.dart';
 import '../../../core/utils/helpers.dart';
 import '../../auth/model/user_model.dart';
 import '../data/member_datasource.dart';
+import '../model/room_member_response.dart';
 
 class AllOrgMemberController {
   final BuildContext context;
   final VoidCallback reloadData;
+  final String roomId;
 
-  final MemberDatasource _datasource = MemberDatasource();
+  final MemberDatasource _roomDataSource = MemberDatasource();
 
   bool isLoading = false;
   bool isLoadingMore = false;
@@ -17,6 +19,9 @@ class AllOrgMemberController {
 
   List<UserModel> members = [];
   MemberPaginationModel? pagination;
+
+  Set<String> roomMemberIds = {};
+  Map<String, bool> addingStatus = {};
 
   // Pagination
   int page = 1;
@@ -31,11 +36,12 @@ class AllOrgMemberController {
   final TextEditingController searchController = TextEditingController();
   final ScrollController scrollController = ScrollController();
 
-  AllOrgMemberController({required this.context, required this.reloadData}){
+  AllOrgMemberController({required this.context, required this.reloadData, required this.roomId}){
     scrollController.addListener(_onScroll);
   }
 
   void init() async {
+    await getRoomMembers();
     await getMembers();
   }
 
@@ -56,7 +62,7 @@ class AllOrgMemberController {
     reloadData();
 
     try {
-      final response = await _datasource.getOrgAllMembers(
+      final response = await _roomDataSource.getOrgAllMembers(
         page: page,
         limit: limit,
         role: selectedRole,
@@ -103,6 +109,23 @@ class AllOrgMemberController {
     }
   }
 
+  Future<void> getRoomMembers() async {
+      try {
+        final response = await MemberDatasource().getRoomMembers(roomId);
+
+        if (response?.success ?? false) {
+          final data = response?.data?.members ?? [];
+          roomMemberIds = data.map((m) => m.user?.id ?? '')
+              .where((id) => id.isNotEmpty)
+              .toSet() ?? {};
+
+          debugPrint('Room members loaded: ${roomMemberIds.length} members');
+        }
+      } catch (e) {
+        debugPrint('Get room members error: $e');
+      }
+  }
+
   Future<void> loadMore() async {
     if (isLoadingMore) return;
     if (pagination == null) return;
@@ -116,7 +139,7 @@ class AllOrgMemberController {
     try {
       page++;
 
-      final response = await _datasource.getOrgAllMembers(
+      final response = await _roomDataSource.getOrgAllMembers(
         page: page,
         limit: limit,
         role: selectedRole,
@@ -137,6 +160,7 @@ class AllOrgMemberController {
   }
 
   Future<void> onRefresh() async {
+    await getRoomMembers();
     await getMembers(refresh: true);
   }
 
@@ -161,6 +185,15 @@ class AllOrgMemberController {
     getMembers(refresh: true);
   }
 
+  bool isMemberInRoom(String userId) {
+    return roomMemberIds.contains(userId);
+  }
+
+  // Check if currently adding this member
+  bool isAddingMember(String userId) {
+    return addingStatus[userId] ?? false;
+  }
+
   bool get hasActiveFilters => search.isNotEmpty || selectedRole.isNotEmpty;
 
   String getRoleDisplay(String? role) {
@@ -173,6 +206,73 @@ class AllOrgMemberController {
     final parts = fullName.trim().split(' ');
     if (parts.length == 1) return parts[0][0].toUpperCase();
     return '${parts[0][0]}${parts[parts.length - 1][0]}'.toUpperCase();
+  }
+
+  void addMemberToRoom(UserModel member) async {
+    if (member.id == null) {
+      Helpers.showSnackBar(
+        context,
+        'Invalid member',
+        type: SnackType.error,
+      );
+      return;
+    }
+
+    // Check if already in room
+    if (isMemberInRoom(member.id!)) {
+      Helpers.showSnackBar(
+        context,
+        '${member.fullName ?? "Member"} is already in this room',
+        type: SnackType.normal,
+      );
+      return;
+    }
+
+    // Set adding status
+    addingStatus[member.id!] = true;
+    reloadData();
+
+    try {
+      final response = await _roomDataSource.addMemberToRoom(
+        roomId: roomId,
+        userId: member.id!,
+      );
+
+      if (response == null) {
+        Helpers.showSnackBar(
+          context,
+          'Failed to add member',
+          type: SnackType.error,
+        );
+        return;
+      }
+
+      if (response['success'] ?? false) {
+        roomMemberIds.add(member.id!);
+        Helpers.showSnackBar(
+          context,
+          '${member.fullName ?? "Member"} added successfully!',
+          type: SnackType.success,
+        );
+        // onMemberAdded?.call();
+      } else {
+        Helpers.showSnackBar(
+          context,
+          response['message']?.toString() ?? 'Failed to add member',
+          type: SnackType.error,
+        );
+      }
+    } catch (e) {
+      debugPrint('Add member error: $e');
+      Helpers.showSnackBar(
+        context,
+        'Failed to add member',
+        type: SnackType.error,
+      );
+    } finally {
+      addingStatus[member.id!] = false;
+      reloadData();
+    }
   }
 
   void dispose() {
