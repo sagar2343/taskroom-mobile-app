@@ -167,11 +167,13 @@ class _RoomDetailScreenState extends State<RoomDetailScreen>
               room: _controller.room!,
               onRefresh: _controller.onRefresh,
               formatDate: _controller.formatDate,
-              onDeleteRoom: _controller.isManager ? _controller.onArchiveRoom : null,
+              onDeleteRoom: _controller.isManager
+                  ? _controller.onArchiveRoom
+                  : null,
               isManager: _controller.isManager,
             ),
-            const TasksTabScreen(),
-            MemberTabScreen(roomId: widget.roomId),
+            TasksTabScreen(roomId: _controller.roomId),
+            MemberTabScreen(roomId: _controller.roomId),
           ],
         ),
       ),

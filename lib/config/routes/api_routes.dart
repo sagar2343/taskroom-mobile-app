@@ -19,3 +19,7 @@ const APIRouteAddMemberToRoom = '/api/rooms/member/add';
 // Organization
 const APIRouteCheckOrgAvailability = '/api/organization/check';
 const APIRouteGetAllOrgMembers = '/api/organization/members';
+
+// Task
+const APIRouteGetTasks = '/api/tasks';
+const APIRouteGetMyTasks = '/api/tasks/my/tasks';
