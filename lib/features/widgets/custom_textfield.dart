@@ -5,7 +5,7 @@ import '../../config/theme/app_pallete.dart';
 
 class CustomTextField extends StatelessWidget {
   final TextEditingController controller;
-  final String label;
+  final String? label;
   final String hint;
   final IconData? prefixIcon;
   final Widget? suffixIcon;
@@ -20,7 +20,7 @@ class CustomTextField extends StatelessWidget {
   const CustomTextField({
     super.key,
     required this.controller,
-    required this.label,
+    this.label,
     required this.hint,
     this.prefixIcon,
     this.suffixIcon,
@@ -40,14 +40,15 @@ class CustomTextField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: GoogleFonts.inter(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: isDark ? Pallete.textPrimaryDark : Pallete.textPrimaryLight,
+        if (label != null)
+          Text(
+            label ?? '',
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: isDark ? Pallete.textPrimaryDark : Pallete.textPrimaryLight,
+            ),
           ),
-        ),
         const SizedBox(height: 8),
         TextFormField(
           keyboardType: keyboardType,

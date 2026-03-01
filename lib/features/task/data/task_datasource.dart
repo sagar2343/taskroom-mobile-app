@@ -33,7 +33,7 @@ class TaskDataSource {
         if (date != null) 'date': date,
       };
 
-      final url = Uri.parse('${HttpConstants.getBaseURL}$APIRouteGetTasks')
+      final url = Uri.parse('${HttpConstants.getBaseURL}$APIRouteTasks')
           .replace(queryParameters: queryParams);
 
       final response = await _client.get(
@@ -81,6 +81,5 @@ class TaskDataSource {
       return null;
     }
   }
-
 
 }

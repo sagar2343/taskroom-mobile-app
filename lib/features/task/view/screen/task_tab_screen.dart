@@ -1,5 +1,6 @@
 import 'package:field_work/features/task/controller/task_tab_controller.dart';
-import 'package:field_work/features/task/view/screen/task_full_screen.dart';
+import 'package:field_work/features/task/view/screen/create_task_screen.dart';
+import 'package:field_work/features/task/view/widgets/task_full_screen.dart';
 import 'package:field_work/features/task/view/widgets/task_card.dart';
 import 'package:field_work/features/widgets/filter_chip_button.dart';
 import 'package:flutter/material.dart';
@@ -238,9 +239,14 @@ class _TasksTabScreenState extends State<TasksTabScreen> {
     return GestureDetector(
       onTap: (){
       // TODO: Navigate to CreateTaskScreen
-      // Navigator.push(context, MaterialPageRoute(
-      //   builder: (_) => CreateTaskScreen(roomId: widget.roomId),
-      // )).then((_) => _controller.onRefresh());
+        Navigator.push(context, MaterialPageRoute(
+          builder: (_) => CreateTaskScreen(
+            roomId: widget.roomId,
+            roomName: 'ROOM NAME',
+            onTaskCreated: () => _controller.onRefresh(),
+          ),
+          fullscreenDialog: true,
+        ));
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),

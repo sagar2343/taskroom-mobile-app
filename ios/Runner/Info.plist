@@ -7,6 +7,11 @@
 	<key>CFBundleDisplayName</key>
 	<string>Field Work</string>
 
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>We need your location to help you pick task destinations</string>
+    <key>NSLocationAlwaysUsageDescription</key>
+    <string>We need your location for field work tracking</string>
+
 	<key>NSAppTransportSecurity</key>
     <dict>
         <key>NSAllowsArbitraryLoads</key>

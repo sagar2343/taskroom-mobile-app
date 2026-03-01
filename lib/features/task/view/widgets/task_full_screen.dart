@@ -1,7 +1,7 @@
 import 'package:field_work/config/theme/app_pallete.dart';
 import 'package:field_work/features/widgets/animated_screen_wrapper.dart';
 import 'package:flutter/material.dart';
-import 'task_tab_screen.dart';
+import '../screen/task_tab_screen.dart';
 
 class TaskFullscreenScreen extends StatelessWidget {
   final String roomId;

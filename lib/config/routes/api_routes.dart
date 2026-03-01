@@ -21,5 +21,5 @@ const APIRouteCheckOrgAvailability = '/api/organization/check';
 const APIRouteGetAllOrgMembers = '/api/organization/members';
 
 // Task
-const APIRouteGetTasks = '/api/tasks';
+const APIRouteTasks = '/api/tasks';
 const APIRouteGetMyTasks = '/api/tasks/my/tasks';
