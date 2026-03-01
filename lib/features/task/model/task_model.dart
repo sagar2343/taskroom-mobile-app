@@ -2,7 +2,7 @@ class TaskModel {
   final String? id;
   final String? organization;
   final TaskRoom? room;
-  final String? createdBy;
+  final TaskCreatedByUser? createdBy;
   final TaskAssignedUser? assignedTo;
   final String? title;
   final String? note;
@@ -66,8 +66,10 @@ class TaskModel {
       room: json['room'] != null
           ? TaskRoom.fromJson(json['room'])
           : null,
-      createdBy: json['createdBy'],
-      assignedTo: json['assignedTo'] != null
+      createdBy: json['createdBy'] != null && json['createdBy'] is Map
+          ? TaskCreatedByUser.fromJson(json['createdBy'])
+          : null,
+      assignedTo: json['assignedTo'] != null && json['assignedTo'] is Map
           ? TaskAssignedUser.fromJson(json['assignedTo'])
           : null,
       title: json['title'],
@@ -133,6 +135,32 @@ class TaskRoom {
   }
 }
 
+
+class TaskCreatedByUser {
+  final String? id;
+  final String? username;
+  final String? fullName;
+  final String? profilePicture;
+
+  TaskCreatedByUser({
+    this.id,
+    this.username,
+    this.fullName,
+    this.profilePicture,
+  });
+
+  factory TaskCreatedByUser.fromJson(Map<String, dynamic> json) {
+    return TaskCreatedByUser(
+      id: json['_id'],
+      username: json['username'],
+      fullName: json['fullName'],
+      profilePicture: json['profilePicture'],
+    );
+  }
+}
+
+// Manager endpoint: fully populated object
+// Employee endpoint: plain string ID — wrapped into TaskAssignedUser(id: ...)
 class TaskAssignedUser {
   final String? id;
   final String? username;
@@ -157,6 +185,9 @@ class TaskAssignedUser {
       isOnline: json['isOnline'],
     );
   }
+
+  // true = full data available, false = only ID was returned
+  bool get isPopulated => username != null || fullName != null;
 }
 
 class TaskStep {

@@ -1,5 +1,6 @@
 import 'package:field_work/config/theme/app_pallete.dart';
 import 'package:field_work/features/member/controller/member_tab_controller.dart';
+import 'package:field_work/features/widgets/animated_screen_wrapper.dart';
 import 'package:field_work/features/widgets/avatar_initials.dart';
 import 'package:flutter/material.dart';
 
@@ -41,28 +42,30 @@ class _MemberTabScreenState extends State<MemberTabScreen> {
       );
     }
 
-    return Scaffold(
-      body: RefreshIndicator(
-        onRefresh: _controller.onRefresh,
-        color: Pallete.primaryColor,
-        child: _controller.members.isEmpty
-            ? _buildEmptyState()
-            : _buildMembersList(),
-      ),
-      floatingActionButton: _controller.isManager
-          ? FloatingActionButton.extended(
-            onPressed: _controller.onAddMember,
-            backgroundColor: Pallete.primaryColor,
-            icon: const Icon(Icons.person_add, color: Colors.white),
-            label: const Text(
-              'Add Member',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
+    return AnimatedScreenWrapper(
+      child: Scaffold(
+        body: RefreshIndicator(
+          onRefresh: _controller.onRefresh,
+          color: Pallete.primaryColor,
+          child: _controller.members.isEmpty
+              ? _buildEmptyState()
+              : _buildMembersList(),
+        ),
+        floatingActionButton: _controller.isManager
+            ? FloatingActionButton.extended(
+              onPressed: _controller.onAddMember,
+              backgroundColor: Pallete.primaryColor,
+              icon: const Icon(Icons.person_add, color: Colors.white),
+              label: const Text(
+                'Add Member',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            ),
-          )
-          : null,
+            )
+            : null,
+      ),
     );
   }
 

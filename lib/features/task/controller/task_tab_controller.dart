@@ -1,7 +1,7 @@
 import 'package:field_work/config/data/local/app_data.dart';
 import 'package:field_work/features/task/model/task_model.dart';
 import 'package:flutter/material.dart';
-
+import '../../../core/utils/helpers.dart';
 import '../data/task_datasource.dart';
 import '../model/task_list_response.dart';
 
@@ -10,23 +10,15 @@ class TaskTabController {
   final VoidCallback reloadData;
   final String roomId;
 
-  TaskTabController({
-    required this.context,
-    required this.reloadData,
-    required this.roomId,
-  });
-
   final TaskDataSource _dataSource = TaskDataSource();
+  final ScrollController scrollController = ScrollController();
 
-  // ── State
   bool isLoading = false;
   bool isLoadingMore = false;
   List<TaskModel> tasks = [];
 
-  // ── Role
   bool get isManager => AppData().getUserData()?.role == 'manager';
 
-  // ── Filter state
   // Manager filters
   String selectedStatus = 'all';       // all | pending | in_progress | completed | overdue | cancelled
   String selectedPriority = 'all';     // all | low | medium | high
@@ -34,7 +26,8 @@ class TaskTabController {
   // Employee filters (tab-style)
   String selectedFilter = 'today';     // today | upcoming | active | completed
 
-  // ── Pagination
+
+  // pagination
   int _currentPage = 1;
   int _totalPages = 1;
   bool get hasMore => _currentPage < _totalPages;
@@ -42,11 +35,11 @@ class TaskTabController {
   // ── Filter options for UI
   final List<Map<String, String>> managerStatusFilters = [
     {'label': 'All', 'value': 'all'},
-    {'label': 'Pending', 'value': 'pending'},
     {'label': 'In Progress', 'value': 'in_progress'},
     {'label': 'Completed', 'value': 'completed'},
     {'label': 'Overdue', 'value': 'overdue'},
     {'label': 'Cancelled', 'value': 'cancelled'},
+    {'label': 'Missed', 'value': 'missed'},
   ];
 
   final List<Map<String, String>> priorityFilters = [
@@ -61,19 +54,29 @@ class TaskTabController {
     {'label': 'Upcoming', 'value': 'upcoming'},
     {'label': 'Active', 'value': 'active'},
     {'label': 'Completed', 'value': 'completed'},
+    {'label': 'Missed',    'value': 'missed'},
   ];
 
-  // ─────────────────────────────────────────────────────────
-  //  INIT
-  // ─────────────────────────────────────────────────────────
+
+  TaskTabController({
+    required this.context,
+    required this.reloadData,
+    required this.roomId,
+  }){
+    scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (scrollController.position.pixels >=
+        scrollController.position.maxScrollExtent - 200) {
+      loadMore();
+    }
+  }
+
 
   void init() async {
     await fetchTasks(reset: true);
   }
-
-  // ─────────────────────────────────────────────────────────
-  //  FETCH
-  // ─────────────────────────────────────────────────────────
 
   Future<void> fetchTasks({bool reset = false}) async {
     if (reset) {
@@ -102,17 +105,39 @@ class TaskTabController {
         );
       }
 
-      if (response?.success == true) {
-        final newTasks = response?.data?.tasks ?? [];
+      if (response == null) {
+        Helpers.showSnackBar(
+          context,
+          'Something went wrong!',
+          type: SnackType.error,
+        );
+        return;
+      }
+
+      if (response.success ?? false) {
+        final newTasks = response.data?.tasks ?? [];
         if (reset) {
           tasks = newTasks;
         } else {
           tasks.addAll(newTasks);
         }
-        _totalPages = response?.data?.pagination?.totalPages ?? 1;
+        _totalPages = response.data?.pagination?.totalPages ?? 1;
+
+      } else {
+        Helpers.showSnackBar(
+          context,
+          response.message ?? 'Something went wrong!',
+          type: SnackType.error,
+        );
       }
-    } catch (e) {
+
+    } catch(e) {
       debugPrint('fetchTasks error: $e');
+      Helpers.showSnackBar(
+        context,
+        e.toString(),
+        type: SnackType.error,
+      );
     } finally {
       isLoading = false;
       isLoadingMore = false;
@@ -120,10 +145,7 @@ class TaskTabController {
     }
   }
 
-  // ─────────────────────────────────────────────────────────
-  //  FILTER ACTIONS
-  // ─────────────────────────────────────────────────────────
-
+  // status filers
   void onStatusFilterChanged(String value) {
     selectedStatus = value;
     fetchTasks(reset: true);
@@ -135,11 +157,11 @@ class TaskTabController {
   }
 
   void onEmployeeFilterChanged(String value) {
-    selectedFilter = value;
+    selectedFilter = value;;
     fetchTasks(reset: true);
   }
 
-  Future<void> onRefresh() => fetchTasks(reset: true);
+  Future<void> onRefresh()=> fetchTasks(reset: true);
 
   void loadMore() {
     if (!isLoadingMore && hasMore) {
@@ -148,10 +170,7 @@ class TaskTabController {
     }
   }
 
-  // ─────────────────────────────────────────────────────────
-  //  HELPERS
-  // ─────────────────────────────────────────────────────────
-
+  // Helpers
   String formatTime(DateTime? dt) {
     if (dt == null) return '--';
     final h = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
@@ -172,5 +191,9 @@ class TaskTabController {
     return dt.year == now.year && dt.month == now.month && dt.day == now.day;
   }
 
-  void dispose() {}
+
+  void dispose() {
+    scrollController.dispose();
+  }
+
 }

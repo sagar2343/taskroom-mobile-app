@@ -1,13 +1,21 @@
-import 'package:field_work/config/theme/app_pallete.dart';
 import 'package:field_work/features/task/controller/task_tab_controller.dart';
-import 'package:field_work/features/widgets/animated_screen_wrapper.dart';
+import 'package:field_work/features/task/view/screen/task_full_screen.dart';
+import 'package:field_work/features/task/view/widgets/task_card.dart';
+import 'package:field_work/features/widgets/filter_chip_button.dart';
 import 'package:flutter/material.dart';
 
-import '../widgets/task_card.dart';
+import '../../../../config/theme/app_pallete.dart';
+import '../../../widgets/animated_screen_wrapper.dart';
+import '../widgets/filter_bar.dart';
 
 class TasksTabScreen extends StatefulWidget {
   final String roomId;
-  const TasksTabScreen({super.key, required this.roomId});
+  final bool isFullscreen;
+  const TasksTabScreen({
+    super.key,
+    required this.roomId,
+    this.isFullscreen = false,
+  });
 
   @override
   State<TasksTabScreen> createState() => _TasksTabScreenState();
@@ -15,17 +23,15 @@ class TasksTabScreen extends StatefulWidget {
 
 class _TasksTabScreenState extends State<TasksTabScreen> {
   late final TaskTabController _controller;
-  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
-    super.initState();
     _controller = TaskTabController(
       context: context,
       reloadData: reloadData,
       roomId: widget.roomId,
     );
-    _scrollController.addListener(_onScroll);
+    super.initState();
     _controller.init();
   }
 
@@ -33,16 +39,8 @@ class _TasksTabScreenState extends State<TasksTabScreen> {
     if (mounted) setState(() {});
   }
 
-  void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
-      _controller.loadMore();
-    }
-  }
-
   @override
   void dispose() {
-    _scrollController.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -54,20 +52,42 @@ class _TasksTabScreenState extends State<TasksTabScreen> {
         children: [
           Column(
             children: [
-              // ── Filter bar
-              _FilterBar(controller: _controller),
+              // ── Fullscreen toggle header (only in tab mode)
+              if (!widget.isFullscreen)
+                _FullscreenHeader(
+                  onExpand: () {
+                    // Get room name from controller or pass it — using roomId fallback
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => TaskFullscreenScreen(
+                          roomId: widget.roomId,
+                          roomName: 'Tasks',
+                        ),
+                        fullscreenDialog: true,
+                      ),
+                    ).then((_) {
+                      if (mounted) _controller.onRefresh();
+                    });
+                  },
+                  taskCount: _controller.tasks.length,
+                  isLoading: _controller.isLoading,
+                ),
+
+              // --Filter bar
+              CustomFilterBar(controller: _controller),
 
               // ── Content
               Expanded(
                 child: _controller.isLoading
                     ? _buildLoader()
                     : RefreshIndicator(
-                  color: Pallete.primaryColor,
-                  onRefresh: _controller.onRefresh,
-                  child: _controller.tasks.isEmpty
-                      ? _buildEmptyState()
-                      : _buildTaskList(),
-                ),
+                      color: Pallete.primaryColor,
+                      onRefresh: _controller.onRefresh,
+                      child: _controller.tasks.isEmpty
+                          ? _buildEmptyState()
+                          : _buildTaskList(),
+                    ),
               ),
             ],
           ),
@@ -77,27 +97,18 @@ class _TasksTabScreenState extends State<TasksTabScreen> {
             Positioned(
               bottom: 20,
               right: 20,
-              child: _CreateTaskFAB(
-                onTap: () {
-                  // TODO: Navigate to CreateTaskScreen
-                  // Navigator.push(context, MaterialPageRoute(
-                  //   builder: (_) => CreateTaskScreen(roomId: widget.roomId),
-                  // )).then((_) => _controller.onRefresh());
-                },
-              ),
-            ),
+              child: _createFAB(),
+            )
         ],
       ),
     );
   }
 
-  // ─────────────────────────────────────────────────────────
-  //  Task list
-  // ─────────────────────────────────────────────────────────
-
+  // Task list
   Widget _buildTaskList() {
     return ListView.builder(
-      controller: _scrollController,
+      controller: _controller.scrollController,
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: EdgeInsets.only(
         left: 16,
         right: 16,
@@ -133,10 +144,7 @@ class _TasksTabScreenState extends State<TasksTabScreen> {
     );
   }
 
-  // ─────────────────────────────────────────────────────────
-  //  Loader
-  // ─────────────────────────────────────────────────────────
-
+  // Loader
   Widget _buildLoader() {
     return Center(
       child: Column(
@@ -157,10 +165,7 @@ class _TasksTabScreenState extends State<TasksTabScreen> {
     );
   }
 
-  // ─────────────────────────────────────────────────────────
-  //  Empty state
-  // ─────────────────────────────────────────────────────────
-
+  // Empty state
   Widget _buildEmptyState() {
     final isManager = _controller.isManager;
     return ListView(
@@ -209,7 +214,7 @@ class _TasksTabScreenState extends State<TasksTabScreen> {
               ),
               if (!isManager) ...[
                 const SizedBox(height: 24),
-                _FilterHint(controller: _controller),
+                CustomFilterHint(controller: _controller),
               ],
             ],
           ),
@@ -224,236 +229,19 @@ class _TasksTabScreenState extends State<TasksTabScreen> {
       case 'upcoming':  return 'No upcoming tasks assigned to you yet.';
       case 'active':    return 'No tasks currently in progress.';
       case 'completed': return 'No completed tasks yet.\nStart working on your tasks!';
+      case 'missed':    return 'No missed tasks. Great work! 🎉';
       default:          return 'No tasks found.';
     }
   }
-}
 
-// ─────────────────────────────────────────────────────────
-//  Filter Bar
-// ─────────────────────────────────────────────────────────
-
-class _FilterBar extends StatelessWidget {
-  final TaskTabController controller;
-  const _FilterBar({required this.controller});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        border: Border(
-          bottom: BorderSide(
-            color: theme.colorScheme.outline.withValues(alpha: 0.1),
-          ),
-        ),
-      ),
-      child: controller.isManager
-          ? _ManagerFilters(controller: controller)
-          : _EmployeeFilters(controller: controller),
-    );
-  }
-}
-
-// Manager: two rows — status + priority
-class _ManagerFilters extends StatelessWidget {
-  final TaskTabController controller;
-  const _ManagerFilters({required this.controller});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Status filter row
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
-          child: Row(
-            children: controller.managerStatusFilters.map((f) {
-              final isSelected = controller.selectedStatus == f['value'];
-              return Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: _FilterChip(
-                  label: f['label']!,
-                  isSelected: isSelected,
-                  onTap: () => controller.onStatusFilterChanged(f['value']!),
-                ),
-              );
-            }).toList(),
-          ),
-        ),
-        // Priority filter row
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-          child: Row(
-            children: [
-              Text(
-                'Priority:',
-                style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.45),
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(width: 8),
-              ...controller.priorityFilters.map((f) {
-                final isSelected = controller.selectedPriority == f['value'];
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: _FilterChip(
-                    label: f['label']!,
-                    isSelected: isSelected,
-                    onTap: () => controller.onPriorityFilterChanged(f['value']!),
-                    small: true,
-                  ),
-                );
-              }),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// Employee: single tab-style row
-class _EmployeeFilters extends StatelessWidget {
-  final TaskTabController controller;
-  const _EmployeeFilters({required this.controller});
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      child: Row(
-        children: controller.employeeFilters.map((f) {
-          final isSelected = controller.selectedFilter == f['value'];
-          return Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: _FilterChip(
-              label: f['label']!,
-              isSelected: isSelected,
-              onTap: () => controller.onEmployeeFilterChanged(f['value']!),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-}
-
-class _FilterChip extends StatelessWidget {
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-  final bool small;
-
-  const _FilterChip({
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-    this.small = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+  Widget _createFAB() {
     return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: EdgeInsets.symmetric(
-          horizontal: small ? 10 : 14,
-          vertical: small ? 5 : 7,
-        ),
-        decoration: BoxDecoration(
-          gradient: isSelected
-              ? LinearGradient(
-            colors: [Pallete.primaryColor, Pallete.primaryLightColor],
-          )
-              : null,
-          color: isSelected
-              ? null
-              : theme.colorScheme.onSurface.withValues(alpha: 0.06),
-          borderRadius: BorderRadius.circular(99),
-          border: Border.all(
-            color: isSelected
-                ? Colors.transparent
-                : theme.colorScheme.outline.withValues(alpha: 0.15),
-          ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: small ? 11 : 12,
-            fontWeight: FontWeight.w600,
-            color: isSelected
-                ? Colors.white
-                : theme.colorScheme.onSurface.withValues(alpha: 0.65),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────
-//  Filter hint (shown in empty state for employees)
-// ─────────────────────────────────────────────────────────
-
-class _FilterHint extends StatelessWidget {
-  final TaskTabController controller;
-  const _FilterHint({required this.controller});
-
-  @override
-  Widget build(BuildContext context) {
-    if (controller.selectedFilter == 'today') {
-      return GestureDetector(
-        onTap: () => controller.onEmployeeFilterChanged('upcoming'),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          decoration: BoxDecoration(
-            color: Pallete.primaryColor.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Pallete.primaryColor.withValues(alpha: 0.2)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.event_rounded, size: 16, color: Pallete.primaryColor),
-              const SizedBox(width: 8),
-              Text(
-                'Check upcoming tasks →',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Pallete.primaryColor,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-    return const SizedBox.shrink();
-  }
-}
-
-// ─────────────────────────────────────────────────────────
-//  Create Task FAB
-// ─────────────────────────────────────────────────────────
-
-class _CreateTaskFAB extends StatelessWidget {
-  final VoidCallback onTap;
-  const _CreateTaskFAB({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
+      onTap: (){
+      // TODO: Navigate to CreateTaskScreen
+      // Navigator.push(context, MaterialPageRoute(
+      //   builder: (_) => CreateTaskScreen(roomId: widget.roomId),
+      // )).then((_) => _controller.onRefresh());
+      },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
         decoration: BoxDecoration(
@@ -486,6 +274,102 @@ class _CreateTaskFAB extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _FullscreenHeader extends StatelessWidget {
+  final VoidCallback onExpand;
+  final int taskCount;
+  final bool isLoading;
+
+  const _FullscreenHeader({
+    required this.onExpand,
+    required this.taskCount,
+    required this.isLoading,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(
+            color: theme.colorScheme.outline.withValues(alpha: 0.08),
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          // Task count pill
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: Pallete.primaryColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(99),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.task_alt_rounded,
+                  size: 13,
+                  color: Pallete.primaryColor,
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  isLoading ? '...' : '$taskCount task${taskCount == 1 ? '' : 's'}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: Pallete.primaryColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const Spacer(),
+
+          // Expand button
+          GestureDetector(
+            onTap: onExpand,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: theme.colorScheme.outline.withValues(alpha: 0.12),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.fullscreen_rounded,
+                    size: 16,
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Full View',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -1,6 +1,7 @@
 import 'package:field_work/config/theme/app_pallete.dart';
 import 'package:field_work/core/utils/helpers.dart';
 import 'package:field_work/features/home/models/room_model.dart';
+import 'package:field_work/features/widgets/animated_screen_wrapper.dart';
 import 'package:field_work/features/widgets/icon_box_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -23,106 +24,108 @@ class OverviewTabScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
-      onRefresh: () async => onRefresh(),
-      color: Pallete.primaryColor,
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Room Details Header
-            _buildRoomHeader(context),
-
-            // Stats Section
-            if (room.stats != null) _buildStatsSection(context),
-
-            // Room Settings
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  IconBoxHeader(
-                    icon: Icons.settings_outlined,
-                    title: 'Room Settings',
-                  ),
-                  const SizedBox(height: 16),
-                  _buildSettingItem(
-                    context,
-                    Icons.people_outline,
-                    'Maximum Members',
-                    '${room.settings?.maxMembers ?? 0}',
-                  ),
-                  if (isManager) ...[
-                    const SizedBox(height: 12),
+    return AnimatedScreenWrapper(
+      child: RefreshIndicator(
+        onRefresh: () async => onRefresh(),
+        color: Pallete.primaryColor,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Room Details Header
+              _buildRoomHeader(context),
+      
+              // Stats Section
+              if (room.stats != null) _buildStatsSection(context),
+      
+              // Room Settings
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    IconBoxHeader(
+                      icon: Icons.settings_outlined,
+                      title: 'Room Settings',
+                    ),
+                    const SizedBox(height: 16),
                     _buildSettingItem(
                       context,
-                      Icons.person_add_outlined,
-                      'Auto Accept Members',
-                      (room.settings?.autoAcceptMembers ?? false)
-                          ? 'Enabled'
-                          : 'Disabled',
-                      color: (room.settings?.autoAcceptMembers ?? false)
-                          ? Pallete.successColor
-                          : Pallete.errorColor,
+                      Icons.people_outline,
+                      'Maximum Members',
+                      '${room.settings?.maxMembers ?? 0}',
                     ),
-                    const SizedBox(height: 12),
-                    _buildSettingItem(
-                      context,
-                      Icons.visibility_outlined,
-                      'Members Can See Each Other',
-                      (room.settings?.allowMembersToSeeEachOther ?? false)
-                          ? 'Enabled'
-                          : 'Disabled',
-                      color: (room.settings?.allowMembersToSeeEachOther ?? false)
-                          ? Pallete.successColor
-                          : Pallete.errorColor,
+                    if (isManager) ...[
+                      const SizedBox(height: 12),
+                      _buildSettingItem(
+                        context,
+                        Icons.person_add_outlined,
+                        'Auto Accept Members',
+                        (room.settings?.autoAcceptMembers ?? false)
+                            ? 'Enabled'
+                            : 'Disabled',
+                        color: (room.settings?.autoAcceptMembers ?? false)
+                            ? Pallete.successColor
+                            : Pallete.errorColor,
+                      ),
+                      const SizedBox(height: 12),
+                      _buildSettingItem(
+                        context,
+                        Icons.visibility_outlined,
+                        'Members Can See Each Other',
+                        (room.settings?.allowMembersToSeeEachOther ?? false)
+                            ? 'Enabled'
+                            : 'Disabled',
+                        color: (room.settings?.allowMembersToSeeEachOther ?? false)
+                            ? Pallete.successColor
+                            : Pallete.errorColor,
+                      ),
+                    ],
+                    const SizedBox(height: 24),
+                    IconBoxHeader(
+                      icon: Icons.info_outline,
+                      title: 'Additional Information',
                     ),
+                    const SizedBox(height: 16),
+                    if (room.createdBy != null)
+                      _buildInfoItem(
+                        context,
+                        Icons.person_outline,
+                        'Created by',
+                        room.createdBy!.fullName ?? 'Unknown',
+                      ),
+                    if (room.createdAt != null) ...[
+                      const SizedBox(height: 12),
+                      _buildInfoItem(
+                        context,
+                        Icons.calendar_today,
+                        'Created',
+                        formatDate(room.createdAt!),
+                      ),
+                    ],
+                    if (room.updatedAt != null) ...[
+                      const SizedBox(height: 12),
+                      _buildInfoItem(
+                        context,
+                        Icons.update,
+                        'Last Updated',
+                        formatDate(room.updatedAt!),
+                      ),
+                    ],
+      
+                    // Delete Room Button (Manager Only)
+                    if (isManager && onDeleteRoom != null) ...[
+                      const SizedBox(height: 32),
+                      _buildDeleteButton(context),
+                    ],
+      
+                    const SizedBox(height: 20),
                   ],
-                  const SizedBox(height: 24),
-                  IconBoxHeader(
-                    icon: Icons.info_outline,
-                    title: 'Additional Information',
-                  ),
-                  const SizedBox(height: 16),
-                  if (room.createdBy != null)
-                    _buildInfoItem(
-                      context,
-                      Icons.person_outline,
-                      'Created by',
-                      room.createdBy!.fullName ?? 'Unknown',
-                    ),
-                  if (room.createdAt != null) ...[
-                    const SizedBox(height: 12),
-                    _buildInfoItem(
-                      context,
-                      Icons.calendar_today,
-                      'Created',
-                      formatDate(room.createdAt!),
-                    ),
-                  ],
-                  if (room.updatedAt != null) ...[
-                    const SizedBox(height: 12),
-                    _buildInfoItem(
-                      context,
-                      Icons.update,
-                      'Last Updated',
-                      formatDate(room.updatedAt!),
-                    ),
-                  ],
-
-                  // Delete Room Button (Manager Only)
-                  if (isManager && onDeleteRoom != null) ...[
-                    const SizedBox(height: 32),
-                    _buildDeleteButton(context),
-                  ],
-
-                  const SizedBox(height: 20),
-                ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
