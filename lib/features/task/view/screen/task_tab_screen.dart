@@ -8,6 +8,8 @@ import 'package:flutter/material.dart';
 import '../../../../config/theme/app_pallete.dart';
 import '../../../widgets/animated_screen_wrapper.dart';
 import '../widgets/filter_bar.dart';
+import '../../../employee_task/view/screen/employee_task_detail_screen.dart';
+import 'manager_task_details_screen.dart';
 
 class TasksTabScreen extends StatefulWidget {
   final String roomId;
@@ -135,10 +137,20 @@ class _TasksTabScreenState extends State<TasksTabScreen> {
           task: task,
           isManager: _controller.isManager,
           onTap: () {
-            // TODO: Navigate to TaskDetailScreen
-            // Navigator.push(context, MaterialPageRoute(
-            //   builder: (_) => TaskDetailScreen(taskId: task.id!),
-            // )).then((_) => _controller.onRefresh());
+            final route = _controller.isManager
+                ? MaterialPageRoute(
+                  builder: (_) => ManagerTaskDetailScreen(
+                    taskId: task.id!,
+                    // onTaskUpdated: () => _controller.onRefresh(),
+                  ),
+                )
+                : MaterialPageRoute(
+                  builder: (_) => EmployeeTaskDetailScreen(
+                    taskId: task.id!,
+                    // onTaskUpdated: () => _controller.onRefresh(),
+                  ),
+                );
+            Navigator.push(context, route).then((_) => _controller.onRefresh());
           },
         );
       },

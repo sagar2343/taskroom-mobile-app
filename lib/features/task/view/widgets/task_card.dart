@@ -25,6 +25,8 @@ class TaskCardWidget extends StatelessWidget {
         return _StatusConfig('Overdue', Pallete.errorColor, Icons.warning_rounded);
       case 'cancelled':
         return _StatusConfig('Cancelled', Colors.grey, Icons.cancel_rounded);
+      case 'missed':
+        return _StatusConfig('Missed', const Color(0xFFEF4444), Icons.alarm_off_rounded);
       default:
         return _StatusConfig('Pending', Pallete.warningColor, Icons.schedule_rounded);
     }
@@ -48,6 +50,7 @@ class TaskCardWidget extends StatelessWidget {
       case 'completed':   return const Color(0xFF22C55E);
       case 'overdue':     return Pallete.errorColor;
       case 'cancelled':   return Colors.grey;
+      case 'missed':      return const Color(0xFFEF4444);
       default:            return Pallete.warningColor;
     }
   }

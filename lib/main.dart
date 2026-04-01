@@ -2,7 +2,10 @@ import 'package:field_work/config/data/local/app_data.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'config/theme/theme.dart';
+import 'config/theme/theme_notifier.dart';
 import 'features/splash/view/screen/splash_screen.dart';
+
+final ThemeNotifier themeNotifier = ThemeNotifier();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,14 +23,19 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    bool isDark = AppData().getIsDarkTheme() ?? false;
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Task Room',
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
-      home: const Splashscreen(),
+    // bool isDark = AppData().getIsDarkTheme() ?? false;
+    return ValueListenableBuilder(
+      valueListenable: themeNotifier,
+      builder: (context, ThemeMode currentMode, child) {
+        return  MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'Task Room',
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: currentMode,
+          home: const Splashscreen(),
+        );
+      },
     );
   }
 }

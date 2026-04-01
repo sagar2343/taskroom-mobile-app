@@ -284,7 +284,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     text: 'Already have an account? ',
                     style: textTheme.bodyMedium!.copyWith(
                       fontWeight: FontWeight.w400,
-                      color: Pallete.textPrimaryLight,
+                      // color: Pallete.textPrimaryLight,
                     ),
                     children: [
                       TextSpan(

@@ -45,6 +45,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen>
       _address = widget.initial!.address;
       _panelAnim.forward();
     }
+    _goToMyLocation();
   }
 
   @override

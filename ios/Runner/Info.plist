@@ -12,6 +12,11 @@
     <key>NSLocationAlwaysUsageDescription</key>
     <string>We need your location for field work tracking</string>
 
+    <key>NSCameraUsageDescription</key>
+    <string>Camera is needed to capture photo proof for task completion</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Photo library access for uploading task proof</string>
+
 	<key>NSAppTransportSecurity</key>
     <dict>
         <key>NSAllowsArbitraryLoads</key>

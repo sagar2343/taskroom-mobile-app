@@ -117,6 +117,39 @@ class TaskModel {
           : null,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      '_id': id,
+      'organization': organization,
+      'room': room?.toJson(),
+      'createdBy': createdBy?.toJson(),
+      'assignedTo': assignedTo?.toJson(),
+      'title': title,
+      'note': note,
+      'priority': priority,
+      'startDatetime': startDatetime?.toIso8601String(),
+      'endDatetime': endDatetime?.toIso8601String(),
+      'isFieldWork': isFieldWork,
+      'steps': steps?.map((e) => e.toJson()).toList(),
+      'currentStepIndex': currentStepIndex,
+      'totalSteps': totalSteps,
+      'completedSteps': completedSteps,
+      'status': status,
+      'employeeStartTime': employeeStartTime?.toIso8601String(),
+      'completedAt': completedAt?.toIso8601String(),
+      'cancelledAt': cancelledAt?.toIso8601String(),
+      'cancelledBy': cancelledBy,
+      'cancellationReason': cancellationReason,
+      'lastEditedBy': lastEditedBy,
+      'lastEditedAt': lastEditedAt?.toIso8601String(),
+      'editedWhileActive': editedWhileActive,
+      'groupId': groupId,
+      'isGroupTask': isGroupTask,
+      'createdAt': createdAt?.toIso8601String(),
+      'updatedAt': updatedAt?.toIso8601String(),
+    };
+  }
 }
 
 class TaskRoom {
@@ -133,8 +166,15 @@ class TaskRoom {
       roomCode: json['roomCode'],
     );
   }
-}
 
+  Map<String, dynamic> toJson() {
+    return {
+      '_id': id,
+      'name': name,
+      'roomCode': roomCode,
+    };
+  }
+}
 
 class TaskCreatedByUser {
   final String? id;
@@ -157,10 +197,17 @@ class TaskCreatedByUser {
       profilePicture: json['profilePicture'],
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      '_id': id,
+      'username': username,
+      'fullName': fullName,
+      'profilePicture': profilePicture,
+    };
+  }
 }
 
-// Manager endpoint: fully populated object
-// Employee endpoint: plain string ID — wrapped into TaskAssignedUser(id: ...)
 class TaskAssignedUser {
   final String? id;
   final String? username;
@@ -186,8 +233,17 @@ class TaskAssignedUser {
     );
   }
 
-  // true = full data available, false = only ID was returned
   bool get isPopulated => username != null || fullName != null;
+
+  Map<String, dynamic> toJson() {
+    return {
+      '_id': id,
+      'username': username,
+      'fullName': fullName,
+      'profilePicture': profilePicture,
+      'isOnline': isOnline,
+    };
+  }
 }
 
 class TaskStep {
@@ -204,6 +260,15 @@ class TaskStep {
   final TaskValidations? validations;
   final String? status;
   final bool? isOverdue;
+  final DateTime? employeeStartTime;    // ← ADDED
+  final DateTime? employeeReachTime;    // ← ADDED
+  final DateTime? employeeCompleteTime; // ← ADDED
+
+  final String? submittedPhotoUrl;
+  final String? signatureSignedBy;
+  final String? employeeNotes;
+  final bool? signatureData;
+
 
   TaskStep({
     this.stepId,
@@ -219,6 +284,14 @@ class TaskStep {
     this.validations,
     this.status,
     this.isOverdue,
+    this.employeeStartTime,
+    this.employeeReachTime,
+    this.employeeCompleteTime,
+
+    this.submittedPhotoUrl,
+    this.signatureSignedBy,
+    this.signatureData,
+    this.employeeNotes,
   });
 
   factory TaskStep.fromJson(Map<String, dynamic> json) {
@@ -246,7 +319,47 @@ class TaskStep {
           : null,
       status: json['status'],
       isOverdue: json['isOverdue'],
+      employeeStartTime: json['employeeStartTime'] != null
+          ? DateTime.tryParse(json['employeeStartTime'])
+          : null,
+      employeeReachTime: json['employeeReachTime'] != null
+          ? DateTime.tryParse(json['employeeReachTime'])
+          : null,
+      employeeCompleteTime: json['employeeCompleteTime'] != null
+          ? DateTime.tryParse(json['employeeCompleteTime'])
+          : null,
+
+      submittedPhotoUrl : json['submittedPhotoUrl'],
+      signatureSignedBy : json['signatureSignedBy'],
+      signatureData : parseBool(json['signatureData']),
+      employeeNotes : json['employeeNotes'],
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'stepId': stepId,
+      'order': order,
+      'title': title,
+      'description': description,
+      'startDatetime': startDatetime?.toIso8601String(),
+      'endDatetime': endDatetime?.toIso8601String(),
+      'isFieldWorkStep': isFieldWorkStep,
+      'locationRadiusMeters': locationRadiusMeters,
+      'destinationLocation': destinationLocation?.toJson(),
+      'submittedLocation': submittedLocation?.toJson(),
+      'validations': validations?.toJson(),
+      'status': status,
+      'isOverdue': isOverdue,
+      'employeeStartTime': employeeStartTime?.toIso8601String(),
+      'employeeReachTime': employeeReachTime?.toIso8601String(),
+      'employeeCompleteTime': employeeCompleteTime?.toIso8601String(),
+
+      'submittedPhotoUrl': submittedPhotoUrl.toString(),
+      'signatureSignedBy': signatureSignedBy.toString(),
+      'employeeNotes': employeeNotes.toString(),
+      'signatureData': signatureData ?? false,
+    };
   }
 }
 
@@ -275,6 +388,15 @@ class TaskLocation {
           : null,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'type': type,
+      'coordinates': coordinates,
+      'address': address,
+      'accuracyMeters': accuracyMeters,
+    };
+  }
 }
 
 class TaskValidations {
@@ -301,4 +423,21 @@ class TaskValidations {
       requireLocationTrace: json['requireLocationTrace'],
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'requireSignature': requireSignature,
+      'signatureFrom': signatureFrom,
+      'requirePhoto': requirePhoto,
+      'requireLocationCheck': requireLocationCheck,
+      'requireLocationTrace': requireLocationTrace,
+    };
+  }
+}
+
+bool? parseBool(dynamic value) {
+  if (value == null) return null;
+  if (value is bool) return value;
+  if (value is String) return value.toLowerCase() == 'true';
+  return null;
 }

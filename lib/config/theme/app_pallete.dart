@@ -31,6 +31,11 @@ class Pallete {
   static const Color redAccent = Color(0xffef4444);
   static const Color amberAccent = Color(0xfff59e0b);
 
+  static const kGreen = Color(0xFF10B981);
+  static const kAmber = Color(0xFFF59E0B);
+  static const kRed   = Color(0xFFEF4444);
+  static const kBlue  = Color(0xFF3B82F6);
+
   // Gradients (keeping your original ones as they can be used for special effects)
   static const Color gradient1 = Color(0xff137fec);
   static const Color gradient2 = Color(0xff4a9ff5);

@@ -3,6 +3,7 @@ import 'package:field_work/features/widgets/animated_screen_wrapper.dart';
 import 'package:field_work/features/widgets/avatar_initials.dart';
 import 'package:flutter/material.dart';
 import '../../../../config/theme/app_pallete.dart';
+import '../../../../main.dart';
 import '../widget/room_card.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -201,7 +202,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ],
                         ),
-
                         const SizedBox(height: 4),
 
                         // Organization Name with Icon
@@ -356,28 +356,127 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       const SizedBox(width: 14),
+                      // Profile item — replace the two Text widgets:
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Profile',
-                            style: textTheme.bodyMedium!.copyWith(
-                              fontWeight: FontWeight.w600,
+                          ValueListenableBuilder<ThemeMode>(
+                            valueListenable: themeNotifier,
+                            builder: (ctx, _, __) => Text(
+                              'Profile',
+                              style: Theme.of(ctx).textTheme.bodyMedium!.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
-                          Text(
-                            'View and edit profile',
-                            style: textTheme.bodySmall!.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: 0.6),
-                              fontSize: 11,
+                          ValueListenableBuilder<ThemeMode>(
+                            valueListenable: themeNotifier,
+                            builder: (ctx, _, __) => Text(
+                              'View and edit profile',
+                              style: Theme.of(ctx).textTheme.bodySmall!.copyWith(
+                                color: Theme.of(ctx).colorScheme.onSurface.withValues(alpha: 0.65),
+                                fontSize: 11,
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ],
+                  ),
+                ),
+
+                const PopupMenuDivider(),
+
+                // Theme Switch
+                PopupMenuItem<String>(
+                  enabled: false,  // keeps popup open on tap
+                  padding: EdgeInsets.zero,
+                  child: ValueListenableBuilder<ThemeMode>(
+                    valueListenable: themeNotifier,
+                    builder: (context, mode, _) {
+                      final isDark = mode == ThemeMode.dark;
+                      return GestureDetector(
+                        onTap: () => themeNotifier.toggleTheme(!isDark),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: isDark
+                                        ? [Colors.deepPurple.withValues(alpha: 0.2), Colors.deepPurple.withValues(alpha: 0.06)]
+                                        : [Colors.orange.withValues(alpha: 0.2), Colors.orange.withValues(alpha: 0.06)],
+                                  ),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Icon(
+                                  isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+                                  size: 20,
+                                  color: isDark ? Colors.deepPurple[300] : Colors.orange[700],
+                                ),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      isDark ? 'Dark Mode' : 'Light Mode',
+                                      style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                        color: Theme.of(context).colorScheme.onSurface, // fix gray-out
+                                      ),
+                                    ),
+                                    Text(
+                                      'Tap to switch theme',
+                                      style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.55),
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              // Animated pill toggle
+                              AnimatedContainer(
+                                duration: const Duration(milliseconds: 250),
+                                width: 44, height: 26,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(99),
+                                  gradient: isDark
+                                      ? LinearGradient(colors: [Colors.deepPurple, Colors.deepPurple.shade300])
+                                      : null,
+                                  color: isDark ? null : Colors.grey.withValues(alpha: 0.2),
+                                ),
+                                child: AnimatedAlign(
+                                  duration: const Duration(milliseconds: 250),
+                                  curve: Curves.easeInOut,
+                                  alignment: isDark ? Alignment.centerRight : Alignment.centerLeft,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(3),
+                                    child: Container(
+                                      width: 20, height: 20,
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        shape: BoxShape.circle,
+                                        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 4)],
+                                      ),
+                                      child: Icon(
+                                        isDark ? Icons.nights_stay_rounded : Icons.wb_sunny_rounded,
+                                        size: 11,
+                                        color: isDark ? Colors.deepPurple : Colors.orange[700],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
 
@@ -406,24 +505,28 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       const SizedBox(width: 14),
+                      // Logout item — same fix:
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Logout',
-                            style: textTheme.bodyMedium!.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: Pallete.errorColor,
+                          ValueListenableBuilder<ThemeMode>(
+                            valueListenable: themeNotifier,
+                            builder: (ctx, _, __) => Text(
+                              'Logout',
+                              style: Theme.of(ctx).textTheme.bodyMedium!.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: Pallete.errorColor,
+                              ),
                             ),
                           ),
-                          Text(
-                            'Sign out from account',
-                            style: textTheme.bodySmall!.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: 0.6),
-                              fontSize: 11,
+                          ValueListenableBuilder<ThemeMode>(
+                            valueListenable: themeNotifier,
+                            builder: (ctx, _, __) => Text(
+                              'Sign out from account',
+                              style: Theme.of(ctx).textTheme.bodySmall!.copyWith(
+                                color: Theme.of(ctx).colorScheme.onSurface.withValues(alpha: 0.6),
+                                fontSize: 11,
+                              ),
                             ),
                           ),
                         ],
