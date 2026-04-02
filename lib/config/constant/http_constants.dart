@@ -2,6 +2,8 @@ import 'dart:io';
 
 class HttpConstants {
 
+  static const kPingInterval = Duration(seconds: 30);
+
   // static String getBaseURL() {
   //   return const String.fromEnvironment("ROOT_URL");
   // }
@@ -22,20 +24,6 @@ class HttpConstants {
     }
   }
 
-  // static String getBaseURL = Platform.isAndroid
-  //     ? 'http://10.0.2.2:3000'
-  //     // ? 'http://192.168.0.167:3000' // real android device
-  //     : 'http://localhost:3000';
-
-  // static Map<String, String> getHttpHeaders([String? token]) {
-  //   final headers = {
-  //     'content-Type': 'application/json',
-  //   };
-  //   if (token != null && token.isNotEmpty) {
-  //     headers['x-auth-token'] = token;
-  //   }
-  //   return headers;
-  // }
   static Map<String, String> getHttpHeaders([String? token]) {
     Map<String, String> headers = {};
     if (token != null) {

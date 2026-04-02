@@ -76,10 +76,10 @@ class TaskModel {
       note: json['note'],
       priority: json['priority'],
       startDatetime: json['startDatetime'] != null
-          ? DateTime.tryParse(json['startDatetime'])
+          ? DateTime.tryParse(json['startDatetime'])?.toLocal()
           : null,
       endDatetime: json['endDatetime'] != null
-          ? DateTime.tryParse(json['endDatetime'])
+          ? DateTime.tryParse(json['endDatetime'])?.toLocal()
           : null,
       isFieldWork: json['isFieldWork'],
       steps: json['steps'] != null
@@ -92,28 +92,28 @@ class TaskModel {
       completedSteps: json['completedSteps'],
       status: json['status'],
       employeeStartTime: json['employeeStartTime'] != null
-          ? DateTime.tryParse(json['employeeStartTime'])
+          ? DateTime.tryParse(json['employeeStartTime'])?.toLocal()
           : null,
       completedAt: json['completedAt'] != null
-          ? DateTime.tryParse(json['completedAt'])
+          ? DateTime.tryParse(json['completedAt'])?.toLocal()
           : null,
       cancelledAt: json['cancelledAt'] != null
-          ? DateTime.tryParse(json['cancelledAt'])
+          ? DateTime.tryParse(json['cancelledAt'])?.toLocal()
           : null,
       cancelledBy: json['cancelledBy'],
       cancellationReason: json['cancellationReason'],
       lastEditedBy: json['lastEditedBy'],
       lastEditedAt: json['lastEditedAt'] != null
-          ? DateTime.tryParse(json['lastEditedAt'])
+          ? DateTime.tryParse(json['lastEditedAt'])?.toLocal()
           : null,
       editedWhileActive: json['editedWhileActive'],
       groupId: json['groupId'],
       isGroupTask: json['isGroupTask'],
       createdAt: json['createdAt'] != null
-          ? DateTime.tryParse(json['createdAt'])
+          ? DateTime.tryParse(json['createdAt'])?.toLocal()
           : null,
       updatedAt: json['updatedAt'] != null
-          ? DateTime.tryParse(json['updatedAt'])
+          ? DateTime.tryParse(json['updatedAt'])?.toLocal()
           : null,
     );
   }
@@ -301,10 +301,10 @@ class TaskStep {
       title: json['title'],
       description: json['description'],
       startDatetime: json['startDatetime'] != null
-          ? DateTime.tryParse(json['startDatetime'])
+          ? DateTime.tryParse(json['startDatetime'])?.toLocal()
           : null,
       endDatetime: json['endDatetime'] != null
-          ? DateTime.tryParse(json['endDatetime'])
+          ? DateTime.tryParse(json['endDatetime'])?.toLocal()
           : null,
       isFieldWorkStep: json['isFieldWorkStep'],
       locationRadiusMeters: json['locationRadiusMeters'],
@@ -320,13 +320,13 @@ class TaskStep {
       status: json['status'],
       isOverdue: json['isOverdue'],
       employeeStartTime: json['employeeStartTime'] != null
-          ? DateTime.tryParse(json['employeeStartTime'])
+          ? DateTime.tryParse(json['employeeStartTime'])?.toLocal()
           : null,
       employeeReachTime: json['employeeReachTime'] != null
-          ? DateTime.tryParse(json['employeeReachTime'])
+          ? DateTime.tryParse(json['employeeReachTime'])?.toLocal()
           : null,
       employeeCompleteTime: json['employeeCompleteTime'] != null
-          ? DateTime.tryParse(json['employeeCompleteTime'])
+          ? DateTime.tryParse(json['employeeCompleteTime'])?.toLocal()
           : null,
 
       submittedPhotoUrl : json['submittedPhotoUrl'],

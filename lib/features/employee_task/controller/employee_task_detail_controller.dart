@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:field_work/config/constant/http_constants.dart';
 import 'package:field_work/features/employee_task/data/task_action_datasource.dart';
 import 'package:field_work/features/task/model/task_model.dart';
 import 'package:flutter/material.dart';
@@ -52,7 +53,8 @@ class EmployeeTaskController {
 
     if (response?.success == true) {
       task = response!.data?.task;
-      _restartPingIfNeeded();   // restart timer whenever task state changes
+      // _restartPingIfNeeded();   // restart timer whenever task state changes
+      _syncPingTimer();
     } else {
       errorMsg = response?.message ?? 'Failed to load task';
     }
@@ -119,7 +121,8 @@ class EmployeeTaskController {
     } finally { _setAction(false); }
   }
 
-  Future<void> completeStep(String stepId, {
+  Future<void> completeStep(
+    String stepId, {
     required bool requirePhoto,
     required bool requireSignature,
     required String? signatureFrom,
@@ -128,10 +131,12 @@ class EmployeeTaskController {
     if (isActionInProgress) return;
 
     if (requirePhoto && capturedPhoto == null) {
-      _snack('Please take a photo first'); return;
+      _snack('Please take a photo first');
+      return;
     }
     if (requireSignature && signatureBase64 == null) {
-      _snack('Please collect the signature first'); return;
+      _snack('Please collect the signature first');
+      return;
     }
     _setAction(true);
     try {
@@ -183,9 +188,17 @@ class EmployeeTaskController {
   Future<void> capturePhoto() async {
     try {
       final xf = await _picker.pickImage(
-          source: ImageSource.camera, imageQuality: 75, maxWidth: 1280);
-      if (xf != null) { capturedPhoto = File(xf.path); reloadData(); }
-    } catch (_) { _snack('Could not open camera. Check permissions.'); }
+        source: ImageSource.camera,
+        imageQuality: 75,
+        maxWidth: 1280,
+      );
+      if (xf != null) {
+        capturedPhoto = File(xf.path);
+        reloadData();
+      }
+    } catch (_) {
+      _snack('Could not open camera. Check permissions.');
+    }
   }
 
   void removePhoto() { capturedPhoto = null; reloadData(); }
@@ -204,14 +217,35 @@ class EmployeeTaskController {
   //  GPS PING  (background location trace while a field step is active)
   // ═══════════════════════════════════════════════════════════════════════
 
-  void _restartPingIfNeeded() {
-    _stopPing();
-    final step = activeFieldStep;
-    if (step == null) return;
-    if (step.validations?.requireLocationTrace != true) return;
+  void _syncPingTimer() {
+    final shouldPing = _shouldPingNow();
 
-    _pingTimer = Timer.periodic(const Duration(seconds: 30), (_) => _ping());
+    if (shouldPing && _pingTimer == null) {
+      // Start fresh timer.
+      _pingTimer = Timer.periodic(HttpConstants.kPingInterval, (_) => _ping());
+      debugPrint('[Ping] Timer STARTED — task tracking is active');
+    } else if (!shouldPing && _pingTimer != null) {
+      // Task finished or tracking not required — kill timer.
+      _stopPing();
+      debugPrint('[Ping] Timer STOPPED — task no longer needs tracking');
+    }
+    // If shouldPing == true and timer already running → do nothing (keep it).
   }
+
+  bool _shouldPingNow() {
+    if (task == null) return false;
+    if (task!.status != 'in_progress') return false;
+    return task!.isFieldWork == true;
+  }
+
+  // void _restartPingIfNeeded() {
+  //   _stopPing();
+  //   final step = activeFieldStep;
+  //   if (step == null) return;
+  //   if (step.validations?.requireLocationTrace != true) return;
+  //
+  //   _pingTimer = Timer.periodic(const Duration(seconds: 30), (_) => _ping());
+  // }
 
   void _stopPing() {
     _pingTimer?.cancel();
@@ -219,18 +253,35 @@ class EmployeeTaskController {
   }
 
   Future<void> _ping() async {
-    final step = activeFieldStep;
-    if (step == null) { _stopPing(); return;}
+    // If task is gone or finished, kill the timer.
+    if (!_shouldPingNow()) {
+      _stopPing();
+      return;
+    }
+
+    final step = activeStep;
+    if (step?.stepId == null) {
+      debugPrint('[Ping] Skipped — no active step yet');
+      return;
+    }
 
     final pos = await _safeGetLocation();
-    if (pos == null) return;
+    if (pos == null) {
+      debugPrint('[Ping] Skipped — could not get GPS');
+      return;
+    }
 
-    await _dataSource.pingLocation(
-      taskId: taskId,
-      stepId: step.stepId!,
-      coordinates: [pos.longitude, pos.latitude],
-      accuracy: pos.accuracy,
-    );
+    try {
+      await _dataSource.pingLocation(
+        taskId:      taskId,
+        stepId:      step!.stepId!,
+        coordinates: [pos.longitude, pos.latitude],
+        accuracy:    pos.accuracy,
+      );
+      debugPrint('[Ping] Sent for step ${step.stepId}');
+    } catch (e) {
+      debugPrint('[Ping] Error: $e');
+    }
   }
 
 
@@ -239,30 +290,27 @@ class EmployeeTaskController {
   // ═══════════════════════════════════════════════════════════════════════
   bool get isTaskPending => task?.status == 'pending';
   bool get isTaskActive  => task?.status == 'in_progress';
-  bool get isTaskDone    =>
+  bool get isTaskDone =>
       task?.status == 'completed' || task?.status == 'cancelled';
 
   /// First step that is currently active (in_progress / travelling / reached)
   TaskStep? get activeStep {
     try {
-      return task?.steps?.firstWhere(
-            (s) => s.status == 'in_progress' ||
-            s.status == 'travelling'  ||
-            s.status == 'reached',
-      );
+      return task?.steps?.firstWhere((s) =>
+      s.status == 'in_progress' ||
+          s.status == 'travelling'  ||
+          s.status == 'reached');
     } catch (_) { return null; }
   }
 
   /// Active step that is also a field-work step — used for GPS ping
   TaskStep? get activeFieldStep {
     try {
-      return task?.steps?.firstWhere(
-          (s) =>
-          (s.status == 'in_progress' ||
-              s.status == 'travelling'  ||
-              s.status == 'reached')    &&
-              s.isFieldWorkStep == true,
-      );
+      return task?.steps?.firstWhere((s) =>
+      (s.status == 'in_progress' ||
+          s.status == 'travelling'  ||
+          s.status == 'reached') &&
+          s.isFieldWorkStep == true);
     } catch (_) { return null; }
   }
 
@@ -270,22 +318,19 @@ class EmployeeTaskController {
   TaskStep? get nextPendingStep {
     try {
       return task?.steps?.firstWhere((s) => s.status == 'pending');
-    } catch (_) { return  null; }
+    } catch (_) { return null; }
   }
 
   // ═══════════════════════════════════════════════════════════════════════
   //  PRIVATE HELPERS
   // ═══════════════════════════════════════════════════════════════════════
 
-  void _setAction(bool v) {
-    isActionInProgress = v;
-    reloadData();
-  }
+  void _setAction(bool v) { isActionInProgress = v; reloadData(); }
 
   void _clearCompletionState() {
     capturedPhoto   = null;
     signatureBase64 = null;
-    employeeNotes   = null;
+    notesCtrl.clear();
   }
 
   Future<Position?> _safeGetLocation() async {
@@ -298,7 +343,8 @@ class EmployeeTaskController {
           perm == LocationPermission.deniedForever) return null;
       if (!await Geolocator.isLocationServiceEnabled()) return null;
       return await Geolocator.getCurrentPosition(
-        locationSettings: LocationSettings(accuracy: LocationAccuracy.high),
+        locationSettings:
+        const LocationSettings(accuracy: LocationAccuracy.high),
       );
     } catch (_) { return null; }
   }
@@ -311,19 +357,14 @@ class EmployeeTaskController {
     );
   }
 
-  // ─── Color / label helpers ────────────────────────────────────────────
-  static const _kGreen = Color(0xFF10B981);
-  static const _kAmber = Color(0xFFF59E0B);
-  static const _kRed   = Color(0xFFEF4444);
-  // static const _kBlue  = Color(0xFF3B82F6);
-  static const _kBlue  = Pallete.primaryColor;
+  // ───label helpers ────────────────────────────────────────────
 
   Color statusColor(String? s) => switch (s) {
     'in_progress' => Pallete.primaryColor,
-    'completed'   => _kGreen,
-    'overdue'     => _kRed,
+    'completed'   => Pallete.kGreen,
+    'overdue'     => Pallete.kRed,
     'cancelled'   => Colors.grey,
-    _             => _kAmber,
+    _             => Pallete.kAmber,
   };
 
   String statusLabel(String? s) => switch (s) {
@@ -335,9 +376,9 @@ class EmployeeTaskController {
   };
 
   Color priorityColor(String? p) => switch (p) {
-    'high' => _kRed,
-    'low'  => _kGreen,
-    _      => _kAmber,
+    'high' => Pallete.kRed,
+    'low'  => Pallete.kGreen,
+    _      => Pallete.kAmber,
   };
 
   String priorityLabel(String? p) => switch (p) {
@@ -347,9 +388,9 @@ class EmployeeTaskController {
   };
 
   Color progressColor(double p) {
-    if (p >= 1.0) return _kGreen;
+    if (p >= 1.0) return Pallete.kGreen;
     if (p >= 0.5) return Pallete.primaryColor;
-    return _kAmber;
+    return Pallete.kAmber;
   }
 
   String fmtDate(DateTime? dt) {

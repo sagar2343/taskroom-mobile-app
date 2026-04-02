@@ -10,7 +10,10 @@ import '../model/task_list_response.dart';
 
 class TaskDataSource {
   final Client _client = kHttpClient;
-  final token = AppData().getAccessToken();
+  final _token = AppData().getAccessToken();
+
+  Map<String, String> get _headers => HttpConstants.getHttpHeaders(_token);
+  String get _base => HttpConstants.getBaseURL;
 
   // ── Manager: get all tasks (with filters)
   Future<TaskListResponse?> getManagerTasks({
@@ -33,12 +36,12 @@ class TaskDataSource {
         if (date != null) 'date': date,
       };
 
-      final url = Uri.parse('${HttpConstants.getBaseURL}$APIRouteTasks')
+      final url = Uri.parse('$_base$APIRouteTasks')
           .replace(queryParameters: queryParams);
 
       final response = await _client.get(
         url, 
-        headers: HttpConstants.getHttpHeaders(token)
+        headers: _headers
       );
 
       final jsonResponse = jsonDecode(response.body);
@@ -65,13 +68,12 @@ class TaskDataSource {
         if (status != null && status != 'all') 'status': status,
       };
 
-      final url = Uri.parse(
-        '${HttpConstants.getBaseURL}$APIRouteGetMyTasks',
-      ).replace(queryParameters: queryParams);
+      final url = Uri.parse('$_base$APIRouteGetMyTasks')
+          .replace(queryParameters: queryParams);
 
       final response = await _client.get(
         url,
-        headers: HttpConstants.getHttpHeaders(token),
+        headers: _headers,
       );
 
       final jsonResponse = jsonDecode(response.body);

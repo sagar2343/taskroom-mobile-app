@@ -64,7 +64,7 @@ class RoomMemberItem {
       role: json['role'],
       id: json['_id'],
       joinedAt: json['joinedAt'] != null
-          ? DateTime.tryParse(json['joinedAt'])
+          ? DateTime.tryParse(json['joinedAt'])?.toLocal()
           : null,
     );
   }

@@ -60,8 +60,8 @@ class UserModel {
           ? UserLocation.fromJson(json['currentLocation'])
           : null,
       isOnline: json['isOnline'],
-      createdAt: DateTime.tryParse(json['createdAt'] ?? ''),
-      updatedAt: DateTime.tryParse(json['updatedAt'] ?? ''),
+      createdAt: DateTime.tryParse(json['createdAt'] ?? '')?.toLocal(),
+      updatedAt: DateTime.tryParse(json['updatedAt'] ?? '')?.toLocal(),
       department: json['department'],
       designation: json['designation'],
     );
@@ -108,7 +108,7 @@ class UserLocation {
       )
           : null,
       address: json['address'],
-      lastUpdated: DateTime.tryParse(json['lastUpdated'] ?? ''),
+      lastUpdated: DateTime.tryParse(json['lastUpdated'] ?? '')?.toLocal(),
     );
   }
 

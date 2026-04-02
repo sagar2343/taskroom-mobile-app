@@ -159,11 +159,34 @@ class TaskActionDataSource {
   // ── Manager: Cancel task ──────────────────────────────────────────────
   // PATCH /api/tasks/cancel  →  body: { taskId, reason? }
 
-  Future<Map<String, dynamic>?> cancelTask(String taskId, {String? reason}) =>
-      _patch(APIRouteTaskCancel, {
+  Future<Map<String, dynamic>?> cancelTask(String taskId, {String? reason}) async {
+    try {
+      final body = {
         'taskId': taskId,
         if (reason != null) 'reason': reason,
-      });
+      };
+
+      final url = Uri.parse('${HttpConstants.getBaseURL}$APIRouteTaskCancel');
+
+      final response = await _client.patch(
+        url,
+        headers: _headers,
+        body: jsonEncode(body),
+      );
+
+      final jsonResponse = jsonDecode(response.body);
+      return jsonResponse;
+    } catch (e) {
+      debugPrint('getMyTasks error: $e');
+      return null;
+    }
+  }
+
+  // Future<Map<String, dynamic>?> cancelTask(String taskId, {String? reason}) =>
+  //     _patch(APIRouteTaskCancel, {
+  //       'taskId': taskId,
+  //       if (reason != null) 'reason': reason,
+  //     });
 
   // ── Manager: Live location ────────────────────────────────────────────
   // POST /api/tasks/live-location  →  body: { taskId }

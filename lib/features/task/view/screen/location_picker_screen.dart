@@ -290,7 +290,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen>
             // ── RIGHT: zoom + locate buttons
             Positioned(
               right: 14,
-              bottom: _pinned != null ? 220 : 140,
+              bottom: _pinned != null ? 270 : 120,
               child: Column(
                 children: [
                   _FloatBtn(

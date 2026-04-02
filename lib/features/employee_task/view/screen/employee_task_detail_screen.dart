@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../../../../config/theme/app_pallete.dart';
 import '../../../task/model/task_model.dart';
 import '../../../task/view/widgets/signature_pad.dart';
+import '../../../widgets/animated_screen_wrapper.dart';
 
 class EmployeeTaskDetailScreen extends StatefulWidget {
   final String taskId;
@@ -46,8 +47,6 @@ class _EmployeeTaskDetailScreenState extends State<EmployeeTaskDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     if (_c.isLoading) {
       return Scaffold(
         appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0),
@@ -110,291 +109,145 @@ class _EmployeeTaskDetailScreenState extends State<EmployeeTaskDetailScreen> {
     final progress    = total > 0 ? done / total : 0.0;
     final statusColor = _c.statusColor(task.status);
 
-    return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-
-          /// HERO HEADER
-          SliverAppBar(
-            expandedHeight: 260,
-            pinned: true,
-            elevation: 0,
-            leading: Padding(
-              padding: const EdgeInsets.all(10),
-              child: GestureDetector(
-                onTap: () {
-                  widget.onTaskUpdated?.call();
-                  Navigator.pop(context);
-                },
-                child: Container(
+    return AnimatedScreenWrapper(
+      child: Scaffold(
+        body: CustomScrollView(
+          slivers: [
+      
+            /// HERO HEADER
+            SliverAppBar(
+              expandedHeight: 260,
+              pinned: true,
+              elevation: 0,
+              leading: Padding(
+                padding: const EdgeInsets.all(10),
+                child: GestureDetector(
+                  onTap: () {
+                    widget.onTaskUpdated?.call();
+                    Navigator.pop(context);
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.28),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.arrow_back_ios_new_rounded,
+                        size: 18, color: Colors.white),
+                  ),
+                ),
+              ),
+              flexibleSpace: FlexibleSpaceBar(
+                collapseMode: CollapseMode.pin,
+                background: Container(
                   decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.28),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(Icons.arrow_back_ios_new_rounded,
-                      size: 18, color: Colors.white),
-                ),
-              ),
-            ),
-            flexibleSpace: FlexibleSpaceBar(
-              collapseMode: CollapseMode.pin,
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      statusColor,
-                      statusColor.withValues(alpha: 0.8),
-                      statusColor.withValues(alpha: 0.35),
-                    ],
-                    stops: const [0, 0.5, 1],
-                  ),
-                ),
-                child: Stack(
-                  children: [
-                    Positioned(top: -40, right: -30,
-                      child: Container(width: 200, height: 200,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withValues(alpha: 0.06)),
-                      ),
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        statusColor,
+                        statusColor.withValues(alpha: 0.8),
+                        statusColor.withValues(alpha: 0.35),
+                      ],
+                      stops: const [0, 0.5, 1],
                     ),
-                    Positioned(bottom: 10, left: 160,
-                      child: Container(width: 160, height: 160,
+                  ),
+                  child: Stack(
+                    children: [
+                      Positioned(top: -40, right: -30,
+                        child: Container(width: 200, height: 200,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.white.withValues(alpha: 0.04),
+                          color: Colors.white.withValues(alpha: 0.06)),
                         ),
                       ),
-                    ),
-                    SafeArea(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 56, 20, 24),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Wrap(spacing: 8, runSpacing: 6, children: [
-                              _HeroBadge(label: _c.statusLabel(task.status)),
-                              if (task.isFieldWork == true)
-                                const _HeroBadge(label: '📍 Field Work'),
-                              if (task.priority != null)
-                                _HeroBadge(label: _c.priorityLabel(task.priority)),
-                            ]),
-                            const SizedBox(height: 14),
-                            Text(
-                              task.title ?? 'Untitled Task',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 26,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: -0.7,
-                                height: 1.2,
-                                shadows: [Shadow(
-                                  color: Colors.black26,
-                                  blurRadius: 16,
-                                  offset: Offset(0, 3),
-                                )],
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 10),
-                            Row(children: [
-                              if (task.room?.name != null) ...[
-                                const Icon(Icons.meeting_room_rounded,
-                                    size: 13, color: Colors.white70),
-                                const SizedBox(width: 4),
-                                Text(task.room!.name!,
-                                  style: const TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600)),
-                                const SizedBox(width: 14),
-                              ],
-                              if (task.createdBy?.fullName != null) ...[
-                                const Icon(Icons.person_outline_rounded,
-                                    size: 13, color: Colors.white54),
-                                const SizedBox(width: 4),
-                                Text('by ${task.createdBy!.fullName!}',
-                                    style: const TextStyle(
-                                        color: Colors.white54, fontSize: 12)),
-                              ],
-                            ]),
-                            if (total > 0) ... [
-                              const SizedBox(height: 16),
-                              Row(children: [
-                                Expanded(
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(99),
-                                    child: LinearProgressIndicator(
-                                      value: progress,
-                                      minHeight: 6,
-                                      backgroundColor:
-                                        Colors.white.withValues(alpha: 0.2),
-                                      valueColor: const AlwaysStoppedAnimation(
-                                        Colors.white),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Text('$done / $total',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w800)),
-                              ]),
-                            ]
-                          ],
-                        ),
-                      ),
-                    )
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          /// SCHEDULE CARD
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-              child: _SurfaceCard(
-                child: Column(children: [
-                  Row(children: [
-                    _ScheduleCol(
-                      icon: Icons.play_circle_outline_rounded,
-                      label: 'START',
-                      date: _c.fmtDate(task.startDatetime),
-                      time: _c.fmtTime(task.startDatetime),
-                      color: Pallete.primaryColor,
-                    ),
-                    Expanded(
-                      child: Center(
-                        child: Column(children: [
-                         Icon(Icons.arrow_forward_rounded,
-                          size: 16,
-                          color: Colors.grey.withValues(alpha: 0.3)),
-                          const SizedBox(height: 2),
-                          Text('to',
-                              style: TextStyle(
-                                  fontSize: 9,
-                                  color: Colors.grey.withValues(alpha: 0.35))),
-                        ]),
-                      ),
-                    ),
-                    _ScheduleCol(
-                      icon: Icons.flag_rounded,
-                      label: 'DEADLINE',
-                      date: _c.fmtDate(task.endDatetime),
-                      time: _c.fmtTime(task.endDatetime),
-                      color: Pallete.kAmber,
-                      isOverdue: _c.isTaskActive &&
-                          task.endDatetime != null &&
-                          task.endDatetime!.isBefore(DateTime.now()),
-                      alignEnd: true,
-                    ),
-                    if (total > 0) ...[
-                      const SizedBox(width: 16),
-                      Container(
-                        width: 56, height: 56,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: _c.progressColor(progress)
-                              .withValues(alpha: 0.08),
-                          border: Border.all(
-                            color: _c.progressColor(progress)
-                                  .withValues(alpha: 0.25),
-                            width: 2,
+                      Positioned(bottom: 10, left: 160,
+                        child: Container(width: 160, height: 160,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white.withValues(alpha: 0.04),
                           ),
                         ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text('${(progress * 100).round()}%',
-                              style: Theme.of(context).textTheme.bodySmall!
-                                  .copyWith(
-                                fontWeight: FontWeight.w900,
-                                color: _c.progressColor(progress))),
-                            Text('done',
-                                style: TextStyle(
-                                    fontSize: 8,
-                                    color: _c.progressColor(progress)
-                                        .withValues(alpha: 0.7))),
-                          ]),
                       ),
-                    ],
-                  ]),
-                  if (total > 0) ...[
-                    const SizedBox(height: 16),
-                    Row(children: [
-                     Expanded(
-                       child: ClipRRect(
-                         borderRadius: BorderRadius.circular(99),
-                         child: LinearProgressIndicator(
-                           value: progress,
-                           minHeight: 7,
-                           backgroundColor: Colors.grey.withValues(alpha: 0.1),
-                           valueColor: AlwaysStoppedAnimation(
-                               _c.progressColor(progress)),
-                         ),
-                       ),
-                     ),
-                      const SizedBox(width: 10),
-                      Text('$done/$total steps',
-                          style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w800,
-                              color: _c.progressColor(progress))),
-                    ])
-                  ]
-                ]),
-              ),
-            ),
-          ),
-
-          /// MANAGER NOTE
-          if (task.note?.isNotEmpty == true)
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Pallete.kAmber.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(
-                        color: Pallete.kAmber.withValues(alpha: 0.22)),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Pallete.kAmber.withValues(alpha: 0.18),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(Icons.sticky_note_2_rounded,
-                            size: 16, color: Pallete.kAmber),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('MANAGER NOTE',
-                                style: TextStyle(
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 0.8,
-                                    color: Pallete.kAmber)),
-                            const SizedBox(height: 5),
-                            Text(task.note!,
+                      SafeArea(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 56, 20, 24),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Wrap(spacing: 8, runSpacing: 6, children: [
+                                _HeroBadge(label: _c.statusLabel(task.status)),
+                                if (task.isFieldWork == true)
+                                  const _HeroBadge(label: '📍 Field Work'),
+                                if (task.priority != null)
+                                  _HeroBadge(label: _c.priorityLabel(task.priority)),
+                              ]),
+                              const SizedBox(height: 14),
+                              Text(
+                                task.title ?? 'Untitled Task',
                                 style: const TextStyle(
-                                    fontSize: 13, height: 1.5)),
-                          ],
+                                  color: Colors.white,
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: -0.7,
+                                  height: 1.2,
+                                  shadows: [Shadow(
+                                    color: Colors.black26,
+                                    blurRadius: 16,
+                                    offset: Offset(0, 3),
+                                  )],
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 10),
+                              Row(children: [
+                                if (task.room?.name != null) ...[
+                                  const Icon(Icons.meeting_room_rounded,
+                                      size: 13, color: Colors.white70),
+                                  const SizedBox(width: 4),
+                                  Text(task.room!.name!,
+                                    style: const TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600)),
+                                  const SizedBox(width: 14),
+                                ],
+                                if (task.createdBy?.fullName != null) ...[
+                                  const Icon(Icons.person_outline_rounded,
+                                      size: 13, color: Colors.white54),
+                                  const SizedBox(width: 4),
+                                  Text('by ${task.createdBy!.fullName!}',
+                                      style: const TextStyle(
+                                          color: Colors.white54, fontSize: 12)),
+                                ],
+                              ]),
+                              if (total > 0) ... [
+                                const SizedBox(height: 16),
+                                Row(children: [
+                                  Expanded(
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(99),
+                                      child: LinearProgressIndicator(
+                                        value: progress,
+                                        minHeight: 6,
+                                        backgroundColor:
+                                          Colors.white.withValues(alpha: 0.2),
+                                        valueColor: const AlwaysStoppedAnimation(
+                                          Colors.white),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Text('$done / $total',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w800)),
+                                ]),
+                              ]
+                            ],
+                          ),
                         ),
                       )
                     ],
@@ -402,139 +255,287 @@ class _EmployeeTaskDetailScreenState extends State<EmployeeTaskDetailScreen> {
                 ),
               ),
             ),
-
-          /// STEPS HEADER
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 22, 16, 4),
-              child: Row(children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Pallete.primaryColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(Icons.checklist_rounded,
-                      size: 17, color: Pallete.primaryColor),
-                ),
-                const SizedBox(width: 10),
-                const Text('Steps',
-                    style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: -0.4)),
-                const SizedBox(width: 8),
-                if (total > 0)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Pallete.primaryColor,
-                      borderRadius: BorderRadius.circular(99),
-                    ),
-                    child: Text('$done / $total',
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w800)),
-                  ),
-              ]),
-            ),
-          ),
-
-          /// STEPS LIST
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-                (context, i) {
-                  final steps = task.steps ?? [];
-                  if (i >= steps.length) return null;
-                  final step = steps[i];
-                  return Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
-                    child: StepCard(
-                      step: step,
-                      index: i,
-                      isLast: i == steps.length -1,
-                      controller: _c,
-                      onStartStep:      () => _c.startStep(step.stepId!),
-                      onMarkReached:    () => _c.markReached(step.stepId!),
-                      onOpenCompletion: () => _showCompletionSheet(step),
-                    ),
-                  );
-                }
-            ),
-          ),
-
-          /// START TASK BUTTON
-          if (_c.isTaskPending)
+      
+            /// SCHEDULE CARD
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
-                child: GestureDetector(
-                  onTap: _c.isActionInProgress ? null : _c.startTask,
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 220),
-                    padding: const EdgeInsets.symmetric(vertical: 19),
-                    decoration: BoxDecoration(
-                        gradient: _c.isActionInProgress
-                            ? null
-                            : LinearGradient(
-                          colors: [
-                            Pallete.primaryColor,
-                            Pallete.primaryLightColor,
-                          ],
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                child: _SurfaceCard(
+                  child: Column(children: [
+                    Row(children: [
+                      _ScheduleCol(
+                        icon: Icons.play_circle_outline_rounded,
+                        label: 'START',
+                        date: _c.fmtDate(task.startDatetime),
+                        time: _c.fmtTime(task.startDatetime),
+                        color: Pallete.primaryColor,
+                      ),
+                      Expanded(
+                        child: Center(
+                          child: Column(children: [
+                           Icon(Icons.arrow_forward_rounded,
+                            size: 16,
+                            color: Colors.grey.withValues(alpha: 0.3)),
+                            const SizedBox(height: 2),
+                            Text('to',
+                                style: TextStyle(
+                                    fontSize: 9,
+                                    color: Colors.grey.withValues(alpha: 0.35))),
+                          ]),
                         ),
-                      color: _c.isActionInProgress
-                          ? Colors.grey.withValues(alpha: 0.1)
-                          : null,
-                      borderRadius: BorderRadius.circular(20),
-                        boxShadow: _c.isActionInProgress
-                            ? null
-                            : [
-                          BoxShadow(
-                            color: Pallete.primaryColor.withValues(alpha: 0.42),
-                            blurRadius: 22,
-                            offset: const Offset(0, 9),
-                          )
-                        ],
-                    ),
-                    child: _c.isActionInProgress
-                        ? const Center(
-                          child: SizedBox(
-                            width: 22, height: 22,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.5,
-                              valueColor: AlwaysStoppedAnimation(Colors.white),
+                      ),
+                      _ScheduleCol(
+                        icon: Icons.flag_rounded,
+                        label: 'DEADLINE',
+                        date: _c.fmtDate(task.endDatetime),
+                        time: _c.fmtTime(task.endDatetime),
+                        color: Pallete.kAmber,
+                        isOverdue: _c.isTaskActive &&
+                            task.endDatetime != null &&
+                            task.endDatetime!.isBefore(DateTime.now()),
+                        alignEnd: true,
+                      ),
+                      if (total > 0) ...[
+                        const SizedBox(width: 16),
+                        Container(
+                          width: 56, height: 56,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: _c.progressColor(progress)
+                                .withValues(alpha: 0.08),
+                            border: Border.all(
+                              color: _c.progressColor(progress)
+                                    .withValues(alpha: 0.25),
+                              width: 2,
                             ),
                           ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text('${(progress * 100).round()}%',
+                                style: Theme.of(context).textTheme.bodySmall!
+                                    .copyWith(
+                                  fontWeight: FontWeight.w900,
+                                  color: _c.progressColor(progress))),
+                              Text('done',
+                                  style: TextStyle(
+                                      fontSize: 8,
+                                      color: _c.progressColor(progress)
+                                          .withValues(alpha: 0.7))),
+                            ]),
+                        ),
+                      ],
+                    ]),
+                    if (total > 0) ...[
+                      const SizedBox(height: 16),
+                      Row(children: [
+                       Expanded(
+                         child: ClipRRect(
+                           borderRadius: BorderRadius.circular(99),
+                           child: LinearProgressIndicator(
+                             value: progress,
+                             minHeight: 7,
+                             backgroundColor: Colors.grey.withValues(alpha: 0.1),
+                             valueColor: AlwaysStoppedAnimation(
+                                 _c.progressColor(progress)),
+                           ),
+                         ),
+                       ),
+                        const SizedBox(width: 10),
+                        Text('$done/$total steps',
+                            style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                color: _c.progressColor(progress))),
+                      ])
+                    ]
+                  ]),
+                ),
+              ),
+            ),
+      
+            /// MANAGER NOTE
+            if (task.note?.isNotEmpty == true)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Pallete.kAmber.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                          color: Pallete.kAmber.withValues(alpha: 0.22)),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Pallete.kAmber.withValues(alpha: 0.18),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(Icons.sticky_note_2_rounded,
+                              size: 16, color: Pallete.kAmber),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('MANAGER NOTE',
+                                  style: TextStyle(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 0.8,
+                                      color: Pallete.kAmber)),
+                              const SizedBox(height: 5),
+                              Text(task.note!,
+                                  style: const TextStyle(
+                                      fontSize: 13, height: 1.5)),
+                            ],
+                          ),
                         )
-                        : const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.rocket_launch_rounded,
-                              color: Colors.white,
-                              size: 22,
-                            ),
-                            SizedBox(width: 10),
-                            Text('Start Task',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w900,
-                                fontSize: 16,
-                                letterSpacing: -0.2,
-                              ),
-                            ),
-                          ],
+                      ],
                     ),
                   ),
                 ),
               ),
+      
+            /// STEPS HEADER
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 22, 16, 4),
+                child: Row(children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Pallete.primaryColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(Icons.checklist_rounded,
+                        size: 17, color: Pallete.primaryColor),
+                  ),
+                  const SizedBox(width: 10),
+                  const Text('Steps',
+                      style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -0.4)),
+                  const SizedBox(width: 8),
+                  if (total > 0)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Pallete.primaryColor,
+                        borderRadius: BorderRadius.circular(99),
+                      ),
+                      child: Text('$done / $total',
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800)),
+                    ),
+                ]),
+              ),
             ),
-          const SliverToBoxAdapter(child: SizedBox(height: 52)),
-        ],
+      
+            /// STEPS LIST
+            SliverList(
+              delegate: SliverChildBuilderDelegate(
+                  (context, i) {
+                    final steps = task.steps ?? [];
+                    if (i >= steps.length) return null;
+                    final step = steps[i];
+                    return Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+                      child: StepCard(
+                        step: step,
+                        index: i,
+                        isLast: i == steps.length -1,
+                        controller: _c,
+                        onStartStep:      () => _c.startStep(step.stepId!),
+                        onMarkReached:    () => _c.markReached(step.stepId!),
+                        onOpenCompletion: () => _showCompletionSheet(step),
+                      ),
+                    );
+                  }
+              ),
+            ),
+      
+            /// START TASK BUTTON
+            if (_c.isTaskPending)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+                  child: GestureDetector(
+                    onTap: _c.isActionInProgress ? null : _c.startTask,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 220),
+                      padding: const EdgeInsets.symmetric(vertical: 19),
+                      decoration: BoxDecoration(
+                          gradient: _c.isActionInProgress
+                              ? null
+                              : LinearGradient(
+                            colors: [
+                              Pallete.primaryColor,
+                              Pallete.primaryLightColor,
+                            ],
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                          ),
+                        color: _c.isActionInProgress
+                            ? Colors.grey.withValues(alpha: 0.1)
+                            : null,
+                        borderRadius: BorderRadius.circular(20),
+                          boxShadow: _c.isActionInProgress
+                              ? null
+                              : [
+                            BoxShadow(
+                              color: Pallete.primaryColor.withValues(alpha: 0.42),
+                              blurRadius: 22,
+                              offset: const Offset(0, 9),
+                            )
+                          ],
+                      ),
+                      child: _c.isActionInProgress
+                          ? const Center(
+                            child: SizedBox(
+                              width: 22, height: 22,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                valueColor: AlwaysStoppedAnimation(Colors.white),
+                              ),
+                            ),
+                          )
+                          : const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.rocket_launch_rounded,
+                                color: Colors.white,
+                                size: 22,
+                              ),
+                              SizedBox(width: 10),
+                              Text('Start Task',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 16,
+                                  letterSpacing: -0.2,
+                                ),
+                              ),
+                            ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            const SliverToBoxAdapter(child: SizedBox(height: 52)),
+          ],
+        ),
       ),
     );
   }

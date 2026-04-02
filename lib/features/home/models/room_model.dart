@@ -47,7 +47,7 @@ class RoomModel {
       roomImage: json['roomImage'],
       isArchived: json['isArchived'],
       archivedAt: json['archivedAt'] != null
-          ? DateTime.tryParse(json['archivedAt'])
+          ? DateTime.tryParse(json['archivedAt'])?.toLocal()
           : null,
       settings: json['settings'] != null
           ? RoomSettings.fromJson(json['settings'])
@@ -61,10 +61,10 @@ class RoomModel {
       )
           : [],
       createdAt: json['createdAt'] != null
-          ? DateTime.tryParse(json['createdAt'])
+          ? DateTime.tryParse(json['createdAt'])?.toLocal()
           : null,
       updatedAt: json['updatedAt'] != null
-          ? DateTime.tryParse(json['updatedAt'])
+          ? DateTime.tryParse(json['updatedAt'])?.toLocal()
           : null,
     );
   }
@@ -176,7 +176,7 @@ class RoomMember {
       role: json['role'],
       id: json['_id'],
       joinedAt: json['joinedAt'] != null
-          ? DateTime.tryParse(json['joinedAt'])
+          ? DateTime.tryParse(json['joinedAt'])?.toLocal()
           : null,
     );
   }

@@ -15,21 +15,24 @@ class CreateTaskController {
 
   final _dataSource = CreateTaskDataSource();
 
-  bool isSubmitting = false;
-  bool isLoadingMembers = false;
+  bool isSubmitting      = false;
+  bool isLoadingMembers  = false;
 
-  // ── Form: Task-level fields
+  // ── Form: task-level fields ────────────────────────────────────────────
   final TextEditingController titleCtrl = TextEditingController();
-  final TextEditingController noteCtrl = TextEditingController();
-  String priority = 'medium';
-  bool isFieldWork = false;
+  final TextEditingController noteCtrl  = TextEditingController();
+  String priority        = 'medium';
+
+  /// When true the backend pings the employee's GPS every 30 s for the
+  /// entire task duration. Sent as [isFieldWork] in the API body.
+  bool trackLocation = false;
+
   DateTime? startDatetime;
   DateTime? endDatetime;
 
-  final List<TaskFormStep> steps = [];
-
-  List<RoomMemberItem> roomMembers = [];
-  final Set<String> selectedIds = {};
+  final List<TaskFormStep> steps       = [];
+  List<RoomMemberItem>     roomMembers = [];
+  final Set<String>        selectedIds = {};
 
   CreateTaskController({
     required this.context,
@@ -38,19 +41,15 @@ class CreateTaskController {
     this.onCreated,
   });
 
-  void init() async {
-    await getRoomMembers();
-  }
+  void init() async => getRoomMembers();
 
   Future<void> getRoomMembers() async {
     isLoadingMembers = true;
     reloadData();
     try {
       final response = await MemberDatasource().getRoomMembers(roomId);
-
       if (response?.success ?? false) {
-        final data = response?.data?.members ?? [];
-        roomMembers = data;
+        roomMembers = response?.data?.members ?? [];
       }
     } catch (e) {
       debugPrint('load members error: $e');
@@ -59,27 +58,22 @@ class CreateTaskController {
     reloadData();
   }
 
-  // ─────────────────────────────────────────────────────────
-  //  STEPS
-  // ─────────────────────────────────────────────────────────
+  // ── Steps ────────────────────────────────────────────────────────────────
 
   void addStep() {
     steps.add(TaskFormStep(
-      isFieldWorkStep: isFieldWork,
-      startDatetime: startDatetime,
-      endDatetime: endDatetime,
-      requireLocationTrace: isFieldWork,
-      requireLocationCheck: isFieldWork,
+      startDatetime:        startDatetime,
+      endDatetime:          endDatetime,
+      // Inherit live-trace setting from the task-level toggle.
+      // The step form never shows this toggle — it's automatic.
+      requireLocationTrace: trackLocation,
     ));
     reloadData();
   }
 
   void updateStep(TaskFormStep updated) {
     final i = steps.indexWhere((s) => s.localId == updated.localId);
-    if (i != -1) {
-      steps[i] = updated;
-      reloadData();
-    }
+    if (i != -1) { steps[i] = updated; reloadData(); }
   }
 
   void deleteStep(String localId) {
@@ -104,23 +98,29 @@ class CreateTaskController {
   void openStepSheet(TaskFormStep step) {
     StepFormSheet.show(
       context,
-      step: step,
+      step:      step,
       taskStart: startDatetime,
-      taskEnd: endDatetime,
-      onSave: updateStep,
+      taskEnd:   endDatetime,
+      onSave:    updateStep,
     );
   }
 
-  // ─────────────────────────────────────────────────────────
-  //  EMPLOYEE SELECTION
-  // ─────────────────────────────────────────────────────────
+  // ── When the task-level toggle changes, update all existing steps ─────────
+
+  void onTrackLocationToggled(bool value) {
+    trackLocation = value;
+    // Propagate the new requireLocationTrace to steps that haven't been
+    // individually configured yet (i.e. those without a custom location check).
+    for (int i = 0; i < steps.length; i++) {
+      steps[i] = steps[i].copyWith(requireLocationTrace: value);
+    }
+    reloadData();
+  }
+
+  // ── Employee selection ────────────────────────────────────────────────────
 
   void toggleMember(String id) {
-    if (selectedIds.contains(id)) {
-      selectedIds.remove(id);
-    } else {
-      selectedIds.add(id);
-    }
+    selectedIds.contains(id) ? selectedIds.remove(id) : selectedIds.add(id);
     reloadData();
   }
 
@@ -129,16 +129,12 @@ class CreateTaskController {
     reloadData();
   }
 
-  void clearAll() {
-    selectedIds.clear();
-    reloadData();
-  }
+  void clearAll() { selectedIds.clear(); reloadData(); }
 
-  bool get allSelected => roomMembers.isNotEmpty && selectedIds.length == roomMembers.length;
+  bool get allSelected =>
+      roomMembers.isNotEmpty && selectedIds.length == roomMembers.length;
 
-  // ─────────────────────────────────────────────────────────
-  //  DATE / TIME PICKERS
-  // ─────────────────────────────────────────────────────────
+  // ── Date / time pickers ───────────────────────────────────────────────────
 
   Future<void> pickStart() async {
     final dt = await _pickDatetime(
@@ -157,14 +153,14 @@ class CreateTaskController {
       initial: endDatetime ?? startDatetime,
       firstDate: startDatetime ?? DateTime.now(),
     );
-    if (dt != null) {
-      endDatetime = dt;
-      reloadData();
-    }
+    if (dt != null) { endDatetime = dt; reloadData(); }
   }
 
-  Future<DateTime?> _pickDatetime({DateTime? initial, required DateTime firstDate}) async {
-    final now = initial ?? DateTime.now();
+  Future<DateTime?> _pickDatetime({
+    DateTime? initial,
+    required DateTime firstDate,
+  }) async {
+    final now        = initial ?? DateTime.now();
     final safeInitial = now.isBefore(firstDate) ? firstDate : now;
 
     final date = await showDatePicker(
@@ -182,38 +178,37 @@ class CreateTaskController {
       builder: _pickerTheme,
     );
     if (time == null) return null;
+
     return DateTime(date.year, date.month, date.day, time.hour, time.minute);
   }
 
-  Widget Function(BuildContext, Widget?) get _pickerTheme => (ctx, child) => Theme(
-    data: Theme.of(ctx).copyWith(
-      colorScheme: Theme.of(ctx).colorScheme.copyWith(primary: Pallete.primaryColor),
-    ), child: child!,
-  );
+  Widget Function(BuildContext, Widget?) get _pickerTheme =>
+          (ctx, child) => Theme(
+        data: Theme.of(ctx).copyWith(
+          colorScheme: Theme.of(ctx)
+              .colorScheme
+              .copyWith(primary: Pallete.primaryColor),
+        ),
+        child: child!,
+      );
 
-
-  // ─────────────────────────────────────────────────────────
-  //  VALIDATION
-  // ─────────────────────────────────────────────────────────
+  // ── Validation ────────────────────────────────────────────────────────────
 
   String? validate() {
     if (titleCtrl.text.trim().isEmpty) return 'Task title is required';
     if (startDatetime == null) return 'Start date & time is required';
-    if (endDatetime == null) return 'End date & time is required';
+    if (endDatetime   == null) return 'End date & time is required';
     if (endDatetime!.isBefore(startDatetime!)) return 'End must be after start';
     if (steps.isEmpty) return 'Add at least one step';
     if (selectedIds.isEmpty) return 'Assign to at least one employee';
-
-    for (int i=0; i < steps.length; i++) {
+    for (int i = 0; i < steps.length; i++) {
       final err = steps[i].validationError;
-      if (err != null) return 'Step ${i+1}: $err';
+      if (err != null) return 'Step ${i + 1}: $err';
     }
     return null;
   }
 
-  // ─────────────────────────────────────────────────────────
-  //  SUBMIT
-  // ─────────────────────────────────────────────────────────
+  // ── Submit ────────────────────────────────────────────────────────────────
 
   Future<void> submit() async {
     final err = validate();
@@ -227,25 +222,23 @@ class CreateTaskController {
 
     try {
       final body = {
-        'roomId': roomId,
-        'title': titleCtrl.text.trim(),
+        'roomId':         roomId,
+        'title':          titleCtrl.text.trim(),
         if (noteCtrl.text.trim().isNotEmpty) 'note': noteCtrl.text.trim(),
-        'priority': priority,
-        'startDatetime': startDatetime!.toIso8601String(),
-        'endDatetime': endDatetime!.toIso8601String(),
-        'isFieldWork': isFieldWork,
-        'assignedTo': selectedIds.toList(),
-        'steps': steps.map((s) => s.toApiJson()).toList(),
+        'priority':       priority,
+        'startDatetime':  startDatetime!.toIso8601String(),
+        'endDatetime':    endDatetime!.toIso8601String(),
+        // isFieldWork = "track live location" in the new mental model
+        'isFieldWork':    trackLocation,
+        'assignedTo':     selectedIds.toList(),
+        'steps':          steps.map((s) => s.toApiJson()).toList(),
       };
 
       final response = await _dataSource.createTask(body);
 
       if (response == null) {
-        Helpers.showSnackBar(
-          context,
-          'Something went wrong.',
-          type: SnackType.error,
-        );
+        Helpers.showSnackBar(context, 'Something went wrong.',
+            type: SnackType.error);
         return;
       }
 
@@ -259,39 +252,32 @@ class CreateTaskController {
           type: SnackType.success,
         );
       } else {
-        Helpers.showSnackBar(
-          context,
-          response['message'] ?? 'Something went wrong!',
-          type: SnackType.error,
-        );
+        Helpers.showSnackBar(context,
+            response['message'] ?? 'Something went wrong!',
+            type: SnackType.error);
       }
-
     } catch (e) {
       debugPrint('createTask error: $e');
-      Helpers.showSnackBar(
-        context, 'Something went wrong. Please try again.',
-        type: SnackType.error,
-      );
+      Helpers.showSnackBar(context,
+          'Something went wrong. Please try again.',
+          type: SnackType.error);
     } finally {
       isSubmitting = false;
       reloadData();
     }
   }
 
-
-  // ─────────────────────────────────────────────────────────
-  //  HELPERS
-  // ─────────────────────────────────────────────────────────
+  // ── Helpers ───────────────────────────────────────────────────────────────
 
   String formatDt(DateTime? dt) {
     if (dt == null) return 'Set';
-    const mo = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const mo = ['Jan','Feb','Mar','Apr','May','Jun',
+      'Jul','Aug','Sep','Oct','Nov','Dec'];
     final h = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
     final m = dt.minute.toString().padLeft(2, '0');
     final p = dt.hour >= 12 ? 'PM' : 'AM';
     return '${dt.day} ${mo[dt.month - 1]} · $h:$m $p';
   }
-
 
   void dispose() {
     titleCtrl.dispose();

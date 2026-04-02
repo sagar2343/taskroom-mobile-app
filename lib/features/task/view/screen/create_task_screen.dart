@@ -148,20 +148,78 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                         const SizedBox(height: 16),
 
                         // Field work toggle
+                        // GestureDetector(
+                        //   onTap: () {
+                        //     _controller.isFieldWork = !_controller.isFieldWork;
+                        //     reloadData();
+                        //   },
+                        //   child: AnimatedContainer(
+                        //     duration: const Duration(milliseconds: 200),
+                        //     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                        //     decoration: BoxDecoration(
+                        //       color: _controller.isFieldWork ? _kGreen.withValues(alpha:0.08) : Colors.grey.withValues(alpha:0.06),
+                        //       borderRadius: BorderRadius.circular(16),
+                        //       border: Border.all(
+                        //         color: _controller.isFieldWork ? _kGreen.withValues(alpha:0.4) : Colors.grey.withValues(alpha:0.15),
+                        //         width: _controller.isFieldWork ? 1.5 : 1,
+                        //       ),
+                        //     ),
+                        //     child: Row(
+                        //       children: [
+                        //         Container(
+                        //           padding: const EdgeInsets.all(8),
+                        //           decoration: BoxDecoration(
+                        //             color: (_controller.isFieldWork ? _kGreen : Colors.grey).withValues(alpha:0.12),
+                        //             borderRadius: BorderRadius.circular(10),
+                        //           ),
+                        //           child: Icon(Icons.signpost_rounded, color: _controller.isFieldWork ? _kGreen : Colors.grey, size: 18),
+                        //         ),
+                        //         const SizedBox(width: 12),
+                        //         Expanded(
+                        //           child: Column(
+                        //             crossAxisAlignment: CrossAxisAlignment.start,
+                        //             children: [
+                        //               Text(
+                        //                 'Field Work Task',
+                        //                 style: TextStyle(
+                        //                   fontWeight: FontWeight.w800,
+                        //                   fontSize: 13,
+                        //                   color: _controller.isFieldWork ? _kGreen : Colors.grey,
+                        //                 ),
+                        //               ),
+                        //               Text(
+                        //                 'Employees will travel to physical locations',
+                        //                 style: TextStyle(fontSize: 11, color: Colors.grey.withValues(alpha:0.65)),
+                        //               ),
+                        //             ],
+                        //           ),
+                        //         ),
+                        //         Switch.adaptive(
+                        //           value: _controller.isFieldWork,
+                        //           onChanged: (v) { _controller.isFieldWork = v; reloadData(); },
+                        //           activeColor: _kGreen,
+                        //           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        //         ),
+                        //       ],
+                        //     ),
+                        //   ),
+                        // ),
+
                         GestureDetector(
-                          onTap: () {
-                            _controller.isFieldWork = !_controller.isFieldWork;
-                            reloadData();
-                          },
+                          onTap: () => _controller.onTrackLocationToggled(!_controller.trackLocation),
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 200),
                             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
                             decoration: BoxDecoration(
-                              color: _controller.isFieldWork ? _kGreen.withValues(alpha:0.08) : Colors.grey.withValues(alpha:0.06),
+                              color: _controller.trackLocation
+                                  ? const Color(0xFF3B82F6).withValues(alpha: 0.08)
+                                  : Colors.grey.withValues(alpha: 0.06),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: _controller.isFieldWork ? _kGreen.withValues(alpha:0.4) : Colors.grey.withValues(alpha:0.15),
-                                width: _controller.isFieldWork ? 1.5 : 1,
+                                color: _controller.trackLocation
+                                    ? const Color(0xFF3B82F6).withValues(alpha: 0.4)
+                                    : Colors.grey.withValues(alpha: 0.15),
+                                width: _controller.trackLocation ? 1.5 : 1,
                               ),
                             ),
                             child: Row(
@@ -169,10 +227,19 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                                 Container(
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
-                                    color: (_controller.isFieldWork ? _kGreen : Colors.grey).withValues(alpha:0.12),
+                                    color: (_controller.trackLocation
+                                        ? const Color(0xFF3B82F6)
+                                        : Colors.grey)
+                                        .withValues(alpha: 0.12),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
-                                  child: Icon(Icons.signpost_rounded, color: _controller.isFieldWork ? _kGreen : Colors.grey, size: 18),
+                                  child: Icon(
+                                    Icons.location_searching_rounded,
+                                    color: _controller.trackLocation
+                                        ? const Color(0xFF3B82F6)
+                                        : Colors.grey,
+                                    size: 18,
+                                  ),
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
@@ -180,24 +247,27 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        'Field Work Task',
+                                        'Track Employee Location',
                                         style: TextStyle(
                                           fontWeight: FontWeight.w800,
                                           fontSize: 13,
-                                          color: _controller.isFieldWork ? _kGreen : Colors.grey,
+                                          color: _controller.trackLocation
+                                              ? const Color(0xFF3B82F6)
+                                              : Colors.grey,
                                         ),
                                       ),
                                       Text(
-                                        'Employees will travel to physical locations',
-                                        style: TextStyle(fontSize: 11, color: Colors.grey.withValues(alpha:0.65)),
+                                        'Pings live GPS every 30 seconds for the full task duration',
+                                        style: TextStyle(
+                                            fontSize: 11, color: Colors.grey.withValues(alpha: 0.65)),
                                       ),
                                     ],
                                   ),
                                 ),
                                 Switch.adaptive(
-                                  value: _controller.isFieldWork,
-                                  onChanged: (v) { _controller.isFieldWork = v; reloadData(); },
-                                  activeColor: _kGreen,
+                                  value: _controller.trackLocation,
+                                  onChanged: _controller.onTrackLocationToggled,
+                                  activeColor: const Color(0xFF3B82F6),
                                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                 ),
                               ],
