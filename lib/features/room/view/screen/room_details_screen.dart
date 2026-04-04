@@ -31,7 +31,7 @@ class _RoomDetailScreenState extends State<RoomDetailScreen>
       roomId: widget.roomId,
       reloadData: reloadData,
     );
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 3, vsync: this, initialIndex: 1);
     _controller.init();
   }
 

@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:typed_data';
-
 import 'package:field_work/config/theme/app_pallete.dart';
 import 'package:field_work/core/utils/helpers.dart';
 import 'package:field_work/features/task/controller/manager_task_detail_controller.dart';
@@ -479,8 +478,8 @@ class _ManagerTaskDetailScreenState extends State<ManagerTaskDetailScreen> {
               ),
             )),
 
-          if (isActive && isCompleted)
-            const SizedBox(width: 10),
+          // if (isActive && isCompleted)
+            const SizedBox(width: 5),
 
           // Route trace button (always available once task started)
           if (isActive || isCompleted)
@@ -509,7 +508,7 @@ class _ManagerTaskDetailScreenState extends State<ManagerTaskDetailScreen> {
             const SizedBox(width: 8),
             Expanded(child: Text(
               isActive
-                  ? 'GPS pings every 30 seconds while the task is active.'
+                  ? 'GPS pings will update while the task is active.'
                   : 'The task is complete. View the full recorded route below.',
               style: TextStyle(
                   fontSize: 11,
@@ -674,9 +673,10 @@ class _StepDetailTileState extends State<_StepDetailTile> {
 
                 // ── Header (always visible) ──────────────────────────
                 GestureDetector(
-                  onTap: s.status != 'pending'
-                      ? () => setState(() => _expanded = !_expanded)
-                      : null,
+                  onTap: ()=> setState(() => _expanded = !_expanded),
+                  // onTap: s.status != 'pending'
+                  //     ? () => setState(() => _expanded = !_expanded)
+                  //     : null,
                   child: Padding(
                     padding: const EdgeInsets.all(12),
                     child: Row(children: [
@@ -725,7 +725,7 @@ class _StepDetailTileState extends State<_StepDetailTile> {
                       )),
                       const SizedBox(width: 8),
                       _StepPill(status: s.status, color: _color),
-                      if (s.status != 'pending') ...[
+                      // if (s.status != 'pending') ...[
                         const SizedBox(width: 6),
                         AnimatedRotation(
                           turns: _expanded ? 0.5 : 0,
@@ -734,13 +734,14 @@ class _StepDetailTileState extends State<_StepDetailTile> {
                               size: 18,
                               color: Colors.grey.withValues(alpha: 0.5)),
                         ),
-                      ],
+                      // ],
                     ]),
                   ),
                 ),
 
                 // ── Expanded content ─────────────────────────────────
-                if (_expanded && s.status != 'pending')
+                // if (_expanded && s.status != 'pending')
+                if (_expanded)
                   _StepExpandedContent(step: s, c: c, isDark: widget.isDark),
               ]),
             ),
@@ -1431,7 +1432,7 @@ class _LocationButton extends StatelessWidget {
   Widget build(BuildContext context) => GestureDetector(
     onTap: onTap,
     child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(14),
@@ -1439,13 +1440,13 @@ class _LocationButton extends StatelessWidget {
       ),
       child: Row(children: [
         Container(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
               color: color.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(10)),
           child: Icon(icon, size: 17, color: color),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 8),
         Expanded(child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
