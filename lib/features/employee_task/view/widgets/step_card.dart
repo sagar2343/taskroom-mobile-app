@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../../config/theme/app_pallete.dart';
-import '../../../employee_task/controller/employee_task_detail_controller.dart';
-import '../../model/task_model.dart';
+import '../../../../core/utils/helpers.dart';
+import '../../controller/employee_task_detail_controller.dart';
+import '../../../task/model/task_model.dart';
 
 /// The main step card used in [EmployeeTaskDetailScreen].
 /// Shows a different UI for each lifecycle state:
@@ -396,6 +397,26 @@ class _DestinationTile extends StatelessWidget {
                       color: Pallete.kGreen.withValues(alpha: 0.65))),
             ],
           ]),
+        ),
+        GestureDetector(
+          onTap: () {
+            Helpers.openMap(
+              lat: step.destinationLocation!.coordinates?[1] ?? 0,
+              lng: step.destinationLocation!.coordinates?[0] ?? 0,
+            );
+          },
+          child: Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: Pallete.kGreen.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(
+              Icons.directions,
+              size: 14,
+              color: Pallete.kGreen,
+            ),
+          ),
         ),
       ]),
     );

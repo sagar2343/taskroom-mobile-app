@@ -14,48 +14,6 @@ class TaskActionDataSource {
   Map<String, String> get _headers => HttpConstants.getHttpHeaders(_token);
   String get _base => HttpConstants.getBaseURL;
 
-  // ── Private HTTP helpers ──────────────────────────────────────────────
-
-  Future<Map<String, dynamic>?> _post(String path, [Map<String, dynamic>? body]) async {
-    try {
-      final url = Uri.parse('$_base$path');
-      final response = await _client.post(
-        url,
-        headers: _headers,
-        body: body != null ? jsonEncode(body) : null,
-      );
-      return jsonDecode(response.body) as Map<String, dynamic>;
-    } catch (e) {
-      debugPrint('POST $path error: $e');
-      return null;
-    }
-  }
-
-  Future<Map<String, dynamic>?> _get(String path) async {
-    try {
-      final url = Uri.parse('$_base$path');
-      final response = await _client.get(url, headers: _headers);
-      return jsonDecode(response.body) as Map<String, dynamic>;
-    } catch (e) {
-      debugPrint('GET $path error: $e');
-      return null;
-    }
-  }
-
-  Future<Map<String, dynamic>?> _patch(String path, [Map<String, dynamic>? body]) async {
-    try {
-      final url = Uri.parse('$_base$path');
-      final response = await _client.patch(
-        url,
-        headers: _headers,
-        body: body != null ? jsonEncode(body) : null,
-      );
-      return jsonDecode(response.body) as Map<String, dynamic>;
-    } catch (e) {
-      debugPrint('PATCH $path error: $e');
-      return null;
-    }
-  }
 
   Future<Map<String, dynamic>?> _put(String path, [Map<String, dynamic>? body]) async {
     try {
@@ -68,21 +26,6 @@ class TaskActionDataSource {
       return jsonDecode(response.body) as Map<String, dynamic>;
     } catch (e) {
       debugPrint('PUT $path error: $e');
-      return null;
-    }
-  }
-
-  Future<Map<String, dynamic>?> _delete(String path, [Map<String, dynamic>? body]) async {
-    try {
-      final url = Uri.parse('$_base$path');
-      final request = Request('DELETE', url);
-      request.headers.addAll(_headers);
-      if (body != null) request.body = jsonEncode(body);
-      final streamedResponse = await _client.send(request);
-      final response = await Response.fromStream(streamedResponse);
-      return jsonDecode(response.body) as Map<String, dynamic>;
-    } catch (e) {
-      debugPrint('DELETE $path error: $e');
       return null;
     }
   }
@@ -120,19 +63,7 @@ class TaskActionDataSource {
   // Future<Map<String, dynamic>?> getDashboard() =>
   //     _get('$APIRouteTasks/dashboard');
 
-  // ── Shared: Task detail ───────────────────────────────────────────────
-  // POST /api/tasks/detail  →  body: { taskId }
 
-  Future<TaskDetailResponse?> getTaskDetail(String taskId) async {
-    try {
-      final result = await _post(APIRouteTaskDetail, {'taskId': taskId});
-      if (result == null) return null;
-      return TaskDetailResponse.fromJson(result);
-    } catch (e) {
-      debugPrint('getTaskDetail error: $e');
-      return null;
-    }
-  }
 
   // ── Manager: Edit task ────────────────────────────────────────────────
   // PUT /api/tasks/edit  →  body: { taskId, ...fields }
@@ -156,28 +87,20 @@ class TaskActionDataSource {
         if (assignedTo != null) 'assignedTo': assignedTo,
       });
 
-  // ── Manager: Cancel task ──────────────────────────────────────────────
-  // PATCH /api/tasks/cancel  →  body: { taskId, reason? }
-
-  Future<Map<String, dynamic>?> cancelTask(String taskId, {String? reason}) async {
+  // POST /api/tasks/detail  →  body: { taskId }
+  Future<TaskDetailResponse?> getTaskDetail(String taskId) async {
     try {
-      final body = {
-        'taskId': taskId,
-        if (reason != null) 'reason': reason,
-      };
-
-      final url = Uri.parse('${HttpConstants.getBaseURL}$APIRouteTaskCancel');
-
-      final response = await _client.patch(
+      final url = Uri.parse('$_base$APIRouteTaskDetail');
+      final body = {'taskId': taskId};
+      final response = await _client.post(
         url,
         headers: _headers,
         body: jsonEncode(body),
       );
-
-      final jsonResponse = jsonDecode(response.body);
-      return jsonResponse;
+      final jsonResponse =  jsonDecode(response.body) as Map<String, dynamic>;
+      return TaskDetailResponse.fromJson(jsonResponse);
     } catch (e) {
-      debugPrint('getMyTasks error: $e');
+      debugPrint('error: $e');
       return null;
     }
   }

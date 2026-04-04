@@ -1,11 +1,33 @@
 import 'package:another_flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../config/theme/app_pallete.dart';
 
 enum SnackType { normal, success, error }
 
 class Helpers {
+
+  static Future<void> openMap({
+    required double lat,
+    required double lng,
+  }) async {
+    final Uri googleMapsUrl = Uri.parse(
+      'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng&travelmode=driving',
+    );
+
+    final Uri geoUrl = Uri.parse('geo:$lat,$lng');
+
+    try {
+      if (await canLaunchUrl(googleMapsUrl)) {
+        await launchUrl(googleMapsUrl, mode: LaunchMode.externalApplication);
+      } else {
+        await launchUrl(geoUrl);
+      }
+    } catch (e) {
+      debugPrint('Map launch error: $e');
+    }
+  }
 
   static void showSnackBar(BuildContext context, String message, {
         SnackType type = SnackType.normal,

@@ -2,7 +2,7 @@ import 'dart:io';
 
 class HttpConstants {
 
-  static const kPingInterval = Duration(seconds: 30);
+  static const kPingInterval = Duration(seconds: 10);
 
   // static String getBaseURL() {
   //   return const String.fromEnvironment("ROOT_URL");

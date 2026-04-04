@@ -29,8 +29,6 @@ const APIRouteGetMyTasks = '/api/tasks/my/tasks';  // GET  (employee list)
 const APIRouteTaskDetail        = '/api/tasks/detail';          // POST  { taskId }
 const APIRouteTaskEdit          = '/api/tasks/edit';            // PUT   { taskId, ...fields }
 const APIRouteTaskCancel        = '/api/tasks/cancel';          // PATCH { taskId, reason? }
-const APIRouteTaskLiveLocation  = '/api/tasks/live-location';   // POST  { taskId }
-const APIRouteTaskLocationTrace = '/api/tasks/location-trace';  // POST  { taskId, stepId? }
 
 // Steps (manager)
 const APIRouteTaskStepsAdd    = '/api/tasks/steps/add';     // POST   { taskId, ...step }
@@ -45,6 +43,11 @@ const APIRouteTaskStepsComplete= '/api/tasks/steps/complete';  // POST { taskId,
 
 // Location
 const APIRouteTaskLocationPing = '/api/tasks/location/ping';   // POST { taskId, stepId, coordinates, ... }
+const APIRouteTaskDashboard = '/api/tasks/dashboard'; // Manager: dashboard summary
+// Manager: live employee location for an active task
+const APIRouteTaskLiveLocation  = '/api/tasks/live-location';   // POST  { taskId }
+// Manager: full GPS trace for a task (all steps or a specific step)
+const APIRouteTaskLocationTrace = '/api/tasks/location-trace';  // POST  { taskId, stepId? }
 
 // ── Attendance ────────────────────────────────────────────────────────
 const APIRouteAttendancePunchIn  = '/api/tasks/attendance/punch-in';

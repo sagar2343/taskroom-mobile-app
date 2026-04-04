@@ -339,8 +339,12 @@ class EmployeeTaskController {
       if (perm == LocationPermission.denied) {
         perm = await Geolocator.requestPermission();
       }
+
       if (perm == LocationPermission.denied ||
-          perm == LocationPermission.deniedForever) return null;
+          perm == LocationPermission.deniedForever) {
+        return null;
+      }
+
       if (!await Geolocator.isLocationServiceEnabled()) return null;
       return await Geolocator.getCurrentPosition(
         locationSettings:

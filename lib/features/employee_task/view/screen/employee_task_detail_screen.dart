@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:field_work/features/employee_task/controller/employee_task_detail_controller.dart';
-import 'package:field_work/features/task/view/widgets/step_card.dart';
+import 'package:field_work/features/employee_task/view/widgets/step_card.dart';
 import 'package:flutter/material.dart';
 import '../../../../config/theme/app_pallete.dart';
 import '../../../task/model/task_model.dart';

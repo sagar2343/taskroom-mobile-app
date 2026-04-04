@@ -267,7 +267,7 @@ class TaskStep {
   final String? submittedPhotoUrl;
   final String? signatureSignedBy;
   final String? employeeNotes;
-  final bool? signatureData;
+  final String? signatureData;
 
 
   TaskStep({
@@ -331,7 +331,7 @@ class TaskStep {
 
       submittedPhotoUrl : json['submittedPhotoUrl'],
       signatureSignedBy : json['signatureSignedBy'],
-      signatureData : parseBool(json['signatureData']),
+      signatureData : json['signatureData'],
       employeeNotes : json['employeeNotes'],
     );
   }

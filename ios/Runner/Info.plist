@@ -8,9 +8,19 @@
 	<string>Field Work</string>
 
     <key>NSLocationWhenInUseUsageDescription</key>
-    <string>We need your location to help you pick task destinations</string>
-    <key>NSLocationAlwaysUsageDescription</key>
-    <string>We need your location for field work tracking</string>
+        <string>We need your location to help you pick task destinations</string>
+
+        <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+        <string>We need your location for background field tracking even when app is closed</string>
+
+        <key>NSLocationAlwaysUsageDescription</key>
+        <string>We need your location for continuous field work tracking</string>
+
+        <key>UIBackgroundModes</key>
+        <array>
+            <string>location</string>
+            <string>fetch</string>
+        </array>
 
     <key>NSCameraUsageDescription</key>
     <string>Camera is needed to capture photo proof for task completion</string>
