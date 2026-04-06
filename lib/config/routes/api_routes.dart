@@ -54,3 +54,5 @@ const APIRouteAttendancePunchIn  = '/api/tasks/attendance/punch-in';
 const APIRouteAttendancePunchOut = '/api/tasks/attendance/punch-out';
 const APIRouteAttendanceToday    = '/api/tasks/attendance/today';
 const APIRouteAttendanceHistory  = '/api/tasks/attendance/history';
+
+const APIRouteTaskActiveStatus   = '/api/tasks/active-status';

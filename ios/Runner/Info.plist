@@ -7,6 +7,9 @@
 	<key>CFBundleDisplayName</key>
 	<string>Field Work</string>
 
+    <key>NSUserNotificationUsageDescription</key>
+    <string>We send notifications to keep you updated on task assignments and alerts</string>
+
     <key>NSLocationWhenInUseUsageDescription</key>
         <string>We need your location to help you pick task destinations</string>
 

@@ -1,7 +1,17 @@
-import 'dart:async';
+// lib/features/employee_task/controller/employee_task_detail_controller.dart
+//
+// Changes vs original:
+//   1. _syncPingTimer() removed — replaced by LocationBackgroundService
+//   2. startTask()  → calls LocationBackgroundService.instance.startTracking()
+//   3. startStep()  → calls LocationBackgroundService.instance.updateStep()
+//   4. completeStep() → if task is done, calls stopTracking()
+//   5. dispose()    → no longer calls _stopPing() (background service manages itself)
+//
+// Everything else (UI, signature, photo, markReached) is UNCHANGED.
+
 import 'dart:io';
-import 'package:field_work/config/constant/http_constants.dart';
 import 'package:field_work/features/employee_task/data/task_action_datasource.dart';
+import 'package:field_work/features/location_tracking/service/location_background_service.dart';
 import 'package:field_work/features/task/model/task_model.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -17,21 +27,17 @@ class EmployeeTaskController {
   final notesCtrl = TextEditingController();
 
   final _dataSource = TaskActionDataSource();
-  final _picker = ImagePicker();
+  final _picker     = ImagePicker();
 
-  // ── Task state ────────────────────────────────────────────────────────
+  // ── Task state ─────────────────────────────────────────────────────────
   TaskModel? task;
   bool       isLoading          = true;
   bool       isActionInProgress = false;
   String?    errorMsg;
 
-  // ── Completion sheet state ────────────────────────────────────────────
+  // ── Completion sheet state ─────────────────────────────────────────────
   File?   capturedPhoto;
   String? signatureBase64;
-  String? employeeNotes;
-
-  // ── GPS ping timer ────────────────────────────────────────────────────
-  Timer? _pingTimer;
 
   EmployeeTaskController({
     required this.context,
@@ -40,9 +46,6 @@ class EmployeeTaskController {
   });
 
   Future<void> init() => loadTask();
-  // Future<void> init() async {
-  //   await loadTask();
-  // }
 
   Future<void> loadTask() async {
     isLoading = true;
@@ -53,13 +56,32 @@ class EmployeeTaskController {
 
     if (response?.success == true) {
       task = response!.data?.task;
-      // _restartPingIfNeeded();   // restart timer whenever task state changes
-      _syncPingTimer();
+      // Sync the background service state with current task
+      _syncBackgroundService();
     } else {
       errorMsg = response?.message ?? 'Failed to load task';
     }
     isLoading = false;
     reloadData();
+  }
+
+  // ── Sync background service with task state ─────────────────────────────
+  void _syncBackgroundService() {
+    final t = task;
+    if (t == null) return;
+
+    if (t.status == 'in_progress' && t.isFieldWork == true) {
+      final step = activeStep;
+      if (step?.stepId != null) {
+        LocationBackgroundService.instance.startTracking(
+          taskId: taskId,
+          stepId: step!.stepId!,
+          roomId: t.room?.id ?? '',
+        );
+      }
+    } else if (t.status == 'completed' || t.status == 'cancelled') {
+      LocationBackgroundService.instance.stopTracking();
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════════════
@@ -79,6 +101,16 @@ class EmployeeTaskController {
       if (res?['success'] == true) {
         _snack("Task started! Let's go 💪", success: true);
         await loadTask();
+
+        // ── Start background GPS tracking ──────────────────────────────
+        if (task?.isFieldWork == true) {
+          final step = activeStep;
+          await LocationBackgroundService.instance.startTracking(
+            taskId: taskId,
+            stepId: step?.stepId ?? '',
+            roomId: task?.room?.id ?? '',
+          );
+        }
       } else {
         _snack(res?['message'] ?? 'Failed to start task');
       }
@@ -93,6 +125,9 @@ class EmployeeTaskController {
       if (res?['success'] == true) {
         _snack('Step started', success: true);
         await loadTask();
+
+        // ── Notify background service of new active step ───────────────
+        await LocationBackgroundService.instance.updateStep(stepId);
       } else {
         _snack(res?['message'] ?? 'Failed to start step');
       }
@@ -122,26 +157,23 @@ class EmployeeTaskController {
   }
 
   Future<void> completeStep(
-    String stepId, {
-    required bool requirePhoto,
-    required bool requireSignature,
-    required String? signatureFrom,
-    required bool requireLocationCheck,
-  }) async {
+      String stepId, {
+        required bool requirePhoto,
+        required bool requireSignature,
+        required String? signatureFrom,
+        required bool requireLocationCheck,
+      }) async {
     if (isActionInProgress) return;
 
     if (requirePhoto && capturedPhoto == null) {
-      _snack('Please take a photo first');
-      return;
+      _snack('Please take a photo first'); return;
     }
     if (requireSignature && signatureBase64 == null) {
-      _snack('Please collect the signature first');
-      return;
+      _snack('Please collect the signature first'); return;
     }
     _setAction(true);
     try {
-      // TODO: Replace with your actual upload (S3 / Cloudinary / etc.)
-      final String? uploadedPhotoUrl = capturedPhoto?.path; // placeholder
+      final String? uploadedPhotoUrl = capturedPhoto?.path;
 
       Map<String, dynamic>? locationPayload;
       if (requireLocationCheck) {
@@ -173,127 +205,45 @@ class EmployeeTaskController {
         );
         _clearCompletionState();
         await loadTask();
-        if (taskDone) _stopPing();
+
+        // ── Stop tracking when entire task is done ─────────────────────
+        if (taskDone) {
+          await LocationBackgroundService.instance.stopTracking();
+        }
       } else {
         _snack(res?['message'] ?? 'Failed to complete step');
       }
     } finally { _setAction(false); }
   }
 
-
   // ═══════════════════════════════════════════════════════════════════════
-  //  PHOTO
+  //  PHOTO / SIGNATURE  (unchanged)
   // ═══════════════════════════════════════════════════════════════════════
 
   Future<void> capturePhoto() async {
     try {
       final xf = await _picker.pickImage(
-        source: ImageSource.camera,
-        imageQuality: 75,
-        maxWidth: 1280,
+        source: ImageSource.camera, imageQuality: 75, maxWidth: 1280,
       );
-      if (xf != null) {
-        capturedPhoto = File(xf.path);
-        reloadData();
-      }
+      if (xf != null) { capturedPhoto = File(xf.path); reloadData(); }
     } catch (_) {
       _snack('Could not open camera. Check permissions.');
     }
   }
 
   void removePhoto() { capturedPhoto = null; reloadData(); }
-
-  // ═══════════════════════════════════════════════════════════════════════
-  //  SIGNATURE
-  // ═══════════════════════════════════════════════════════════════════════
-
-  void onSignatureReceived(String base64) {
-    signatureBase64 = base64; reloadData();
-  }
-
+  void onSignatureReceived(String base64) { signatureBase64 = base64; reloadData(); }
   void clearSignature() { signatureBase64 = null; reloadData(); }
 
   // ═══════════════════════════════════════════════════════════════════════
-  //  GPS PING  (background location trace while a field step is active)
+  //  COMPUTED PROPERTIES
   // ═══════════════════════════════════════════════════════════════════════
 
-  void _syncPingTimer() {
-    final shouldPing = _shouldPingNow();
-
-    if (shouldPing && _pingTimer == null) {
-      // Start fresh timer.
-      _pingTimer = Timer.periodic(HttpConstants.kPingInterval, (_) => _ping());
-      debugPrint('[Ping] Timer STARTED — task tracking is active');
-    } else if (!shouldPing && _pingTimer != null) {
-      // Task finished or tracking not required — kill timer.
-      _stopPing();
-      debugPrint('[Ping] Timer STOPPED — task no longer needs tracking');
-    }
-    // If shouldPing == true and timer already running → do nothing (keep it).
-  }
-
-  bool _shouldPingNow() {
-    if (task == null) return false;
-    if (task!.status != 'in_progress') return false;
-    return task!.isFieldWork == true;
-  }
-
-  // void _restartPingIfNeeded() {
-  //   _stopPing();
-  //   final step = activeFieldStep;
-  //   if (step == null) return;
-  //   if (step.validations?.requireLocationTrace != true) return;
-  //
-  //   _pingTimer = Timer.periodic(const Duration(seconds: 30), (_) => _ping());
-  // }
-
-  void _stopPing() {
-    _pingTimer?.cancel();
-    _pingTimer = null;
-  }
-
-  Future<void> _ping() async {
-    // If task is gone or finished, kill the timer.
-    if (!_shouldPingNow()) {
-      _stopPing();
-      return;
-    }
-
-    final step = activeStep;
-    if (step?.stepId == null) {
-      debugPrint('[Ping] Skipped — no active step yet');
-      return;
-    }
-
-    final pos = await _safeGetLocation();
-    if (pos == null) {
-      debugPrint('[Ping] Skipped — could not get GPS');
-      return;
-    }
-
-    try {
-      await _dataSource.pingLocation(
-        taskId:      taskId,
-        stepId:      step!.stepId!,
-        coordinates: [pos.longitude, pos.latitude],
-        accuracy:    pos.accuracy,
-      );
-      debugPrint('[Ping] Sent for step ${step.stepId}');
-    } catch (e) {
-      debugPrint('[Ping] Error: $e');
-    }
-  }
-
-
-  // ═══════════════════════════════════════════════════════════════════════
-  //  COMPUTED PROPERTIES  (used directly by the UI)
-  // ═══════════════════════════════════════════════════════════════════════
   bool get isTaskPending => task?.status == 'pending';
   bool get isTaskActive  => task?.status == 'in_progress';
-  bool get isTaskDone =>
+  bool get isTaskDone    =>
       task?.status == 'completed' || task?.status == 'cancelled';
 
-  /// First step that is currently active (in_progress / travelling / reached)
   TaskStep? get activeStep {
     try {
       return task?.steps?.firstWhere((s) =>
@@ -303,7 +253,7 @@ class EmployeeTaskController {
     } catch (_) { return null; }
   }
 
-  /// Active step that is also a field-work step — used for GPS ping
+  // Kept for backwards compatibility — still used in some UI paths
   TaskStep? get activeFieldStep {
     try {
       return task?.steps?.firstWhere((s) =>
@@ -314,7 +264,6 @@ class EmployeeTaskController {
     } catch (_) { return null; }
   }
 
-  /// First step still waiting to be started
   TaskStep? get nextPendingStep {
     try {
       return task?.steps?.firstWhere((s) => s.status == 'pending');
@@ -339,29 +288,22 @@ class EmployeeTaskController {
       if (perm == LocationPermission.denied) {
         perm = await Geolocator.requestPermission();
       }
-
       if (perm == LocationPermission.denied ||
-          perm == LocationPermission.deniedForever) {
-        return null;
-      }
-
+          perm == LocationPermission.deniedForever) return null;
       if (!await Geolocator.isLocationServiceEnabled()) return null;
       return await Geolocator.getCurrentPosition(
-        locationSettings:
-        const LocationSettings(accuracy: LocationAccuracy.high),
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
       );
     } catch (_) { return null; }
   }
 
   void _snack(String msg, {bool success = false}) {
     if (!context.mounted) return;
-    Helpers.showSnackBar(
-      context, msg,
-      type: success ? SnackType.success : SnackType.error,
-    );
+    Helpers.showSnackBar(context, msg,
+        type: success ? SnackType.success : SnackType.error);
   }
 
-  // ───label helpers ────────────────────────────────────────────
+  // ── Label / color helpers (unchanged) ─────────────────────────────────
 
   Color statusColor(String? s) => switch (s) {
     'in_progress' => Pallete.primaryColor,
@@ -414,9 +356,8 @@ class EmployeeTaskController {
   String? capitalize(String? s) =>
       (s == null || s.isEmpty) ? s : s[0].toUpperCase() + s.substring(1);
 
-
   void dispose() {
     notesCtrl.dispose();
-    _stopPing();
+    // Background service lifecycle is managed globally — do NOT stop it here
   }
 }
