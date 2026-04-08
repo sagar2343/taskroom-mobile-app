@@ -1,3 +1,4 @@
+import 'package:field_work/config/constant/http_constants.dart';
 import 'package:field_work/core/utils/helpers.dart';
 import 'package:field_work/features/auth/data/auth_data.dart';
 import 'package:field_work/features/home/view/screen/home_screen.dart';
@@ -83,7 +84,7 @@ class LoginController {
   }
 
   Future<void> launchURL() async {
-    final Uri url = Uri.parse('https://taskroom.com/create-organization');
+    final Uri url = Uri.parse(HttpConstants.getBaseURL);
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
