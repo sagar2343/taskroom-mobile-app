@@ -89,8 +89,8 @@ class TaskFormStep {
   // Map<String, dynamic> toApiJson() => {
   //   'title': title.trim(),
   //   'description': description.trim().isEmpty ? null : description.trim(),
-  //   'startDatetime': startDatetime!.toIso8601String(),
-  //   'endDatetime': endDatetime!.toIso8601String(),
+  //   'startDatetime': startDatetime!.toUtc().toIso8601String(),
+  //   'endDatetime': endDatetime!.toUtc().toIso8601String(),
   //   'isFieldWorkStep': isFieldWorkStep,
   //   if (isFieldWorkStep && hasLocation)
   //     'destinationLocation': {
@@ -146,8 +146,8 @@ class TaskFormStep {
   Map<String, dynamic> toApiJson() => {
     'title':           title.trim(),
     if (description.trim().isNotEmpty) 'description': description.trim(),
-    'startDatetime':   startDatetime!.toIso8601String(),
-    'endDatetime':     endDatetime!.toIso8601String(),
+    'startDatetime':   startDatetime!.toUtc().toIso8601String(),
+    'endDatetime':     endDatetime!.toUtc().toIso8601String(),
     'isFieldWorkStep': isFieldWorkStep,
     if (isFieldWorkStep)
       'destinationLocation': {

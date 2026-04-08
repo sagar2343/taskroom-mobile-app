@@ -81,8 +81,8 @@ class UserModel {
       'managerId': managerId,
       'currentLocation': currentLocation?.toJson(),
       'isOnline': isOnline,
-      'createdAt': createdAt?.toIso8601String(),
-      'updatedAt': updatedAt?.toIso8601String(),
+      'createdAt': createdAt?.toUtc().toIso8601String(),
+      'updatedAt': updatedAt?.toUtc().toIso8601String(),
       'department': department,
       'designation': designation,
     };
@@ -116,7 +116,7 @@ class UserLocation {
     return {
       'coordinates': coordinates,
       'address': address,
-      'lastUpdated': lastUpdated?.toIso8601String(),
+      'lastUpdated': lastUpdated?.toUtc().toIso8601String(),
     };
   }
 }

@@ -226,8 +226,8 @@ class CreateTaskController {
         'title':          titleCtrl.text.trim(),
         if (noteCtrl.text.trim().isNotEmpty) 'note': noteCtrl.text.trim(),
         'priority':       priority,
-        'startDatetime':  startDatetime!.toIso8601String(),
-        'endDatetime':    endDatetime!.toIso8601String(),
+        'startDatetime':  startDatetime!.toUtc().toIso8601String(),
+        'endDatetime':    endDatetime!.toUtc().toIso8601String(),
         // isFieldWork = "track live location" in the new mental model
         'isFieldWork':    trackLocation,
         'assignedTo':     selectedIds.toList(),

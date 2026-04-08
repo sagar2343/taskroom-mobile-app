@@ -77,8 +77,8 @@ class OrganizationModel {
       'isActive': isActive,
       'isSuspended': isSuspended,
       'suspensionReason': suspensionReason,
-      'createdAt': createdAt?.toIso8601String(),
-      'updatedAt': updatedAt?.toIso8601String(),
+      'createdAt': createdAt?.toUtc().toIso8601String(),
+      'updatedAt': updatedAt?.toUtc().toIso8601String(),
     };
   }
 }

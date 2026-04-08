@@ -36,7 +36,7 @@ class StepEditState {
   final String localId;
 
   StepEditState({required this.original})
-      : localId = original.stepId ?? DateTime.now().toIso8601String();
+      : localId = original.stepId ?? DateTime.now().toUtc().toIso8601String();
 
   /// Returns the effective title shown in the list.
   String get displayTitle =>
@@ -371,8 +371,8 @@ class EditTaskController {
         title:         titleCtrl.text.trim(),
         note:          noteCtrl.text.trim().isEmpty ? null : noteCtrl.text.trim(),
         priority:      priority,
-        startDatetime: isPending ? startDatetime?.toIso8601String() : null,
-        endDatetime:   endDatetime?.toIso8601String(),
+        startDatetime: isPending ? startDatetime?.toUtc().toIso8601String() : null,
+        endDatetime:   endDatetime?.toUtc().toIso8601String(),
       );
       if (taskRes?['success'] != true) {
         errors.add('Task fields: ${taskRes?['message'] ?? 'Update failed'}');
@@ -388,12 +388,12 @@ class EditTaskController {
         final Map<String, dynamic> payload = {
           'title':       d.title,
           'description': d.description.isNotEmpty ? d.description : null,
-          'endDatetime': d.endDatetime?.toIso8601String(),
+          'endDatetime': d.endDatetime?.toUtc().toIso8601String(),
         };
 
         // Full edits only for pending steps
         if (e == StepEditability.full) {
-          payload['startDatetime'] = d.startDatetime?.toIso8601String();
+          payload['startDatetime'] = d.startDatetime?.toUtc().toIso8601String();
           payload['isFieldWorkStep'] = d.isFieldWorkStep;
           if (d.isFieldWorkStep && d.hasLocation) {
             payload['destinationLocation'] = {
@@ -435,8 +435,8 @@ class EditTaskController {
           taskId,
           title:               ns.title,
           description:         ns.description.isNotEmpty ? ns.description : null,
-          startDatetime:       ns.startDatetime!.toIso8601String(),
-          endDatetime:         ns.endDatetime!.toIso8601String(),
+          startDatetime:       ns.startDatetime!.toUtc().toIso8601String(),
+          endDatetime:         ns.endDatetime!.toUtc().toIso8601String(),
           isFieldWorkStep:     ns.isFieldWorkStep,
           destinationLocation: ns.isFieldWorkStep && ns.hasLocation
               ? {
