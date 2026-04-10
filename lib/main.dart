@@ -1,4 +1,5 @@
 import 'package:field_work/config/data/local/app_data.dart';
+import 'package:field_work/services/notification_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'config/theme/theme.dart';
@@ -14,6 +15,8 @@ void main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
+  await NotificationHelper.initialize();
+
   await AppData().restoreInstance();
 
   await LocationBackgroundService.initialize();
