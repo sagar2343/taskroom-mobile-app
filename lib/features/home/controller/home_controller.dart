@@ -8,6 +8,7 @@ import 'package:field_work/features/splash/view/screen/splash_screen.dart';
 import 'package:flutter/material.dart';
 import '../../../config/theme/app_pallete.dart';
 import '../../../core/utils/helpers.dart';
+import '../../../services/fcm_service.dart';
 import '../../room/view/screen/create_room_screen.dart';
 import '../../room/view/screen/room_details_screen.dart';
 import '../models/all_room_response.dart';
@@ -245,8 +246,9 @@ class HomeController {
             ),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               AppData().clearAll();
+              await FcmService.instance.unregisterToken();
               Navigator.pop(context);
               if (context.mounted) {
                 Navigator.pushAndRemoveUntil(

@@ -3,10 +3,10 @@ import 'package:field_work/core/utils/helpers.dart';
 import 'package:field_work/features/auth/data/auth_data.dart';
 import 'package:field_work/features/home/view/screen/home_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../config/data/local/app_data.dart';
 import '../../../config/theme/app_pallete.dart';
+import '../../../services/fcm_service.dart';
 
 class LoginController {
   final BuildContext context;
@@ -16,65 +16,78 @@ class LoginController {
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
   final orgCodeController = TextEditingController();
+
   bool obscurePassword = true;
   bool isLoading = false;
 
   LoginController({required this.context, required this.reloadData});
 
-  void handleLogin() async {
 
-    if (!formKey.currentState!.validate()) {
-      return;
-    }
+  Future<void> handleLogin() async {
+    if (!formKey.currentState!.validate()) return;
+
     isLoading = true;
     reloadData();
-    final data = {
+
+    final payload = {
       'username': usernameController.text.trim(),
       'password': passwordController.text,
       'organizationCode': orgCodeController.text.trim(),
     };
+
     try {
-      final response = await AuthDataSource().loginUser(data);
+      final response = await AuthDataSource().loginUser(payload);
+
       if (response == null) {
-        Helpers.showSnackBar(context,
+        Helpers.showSnackBar(
+          context,
           'Something went wrong!',
           type: SnackType.error,
         );
         return;
       }
+
       if (response.success ?? false) {
-        if (response.data?.token != null && response.data!.token!.isNotEmpty) {
-          AppData().setAccessToken(response.data!.token!);
+        final token = response.data?.token;
+        if (token != null && token.isNotEmpty) {
+          AppData().setAccessToken(token);
         }
-        if (response.data?.user != null) {
-          AppData().setUserData(response.data!.user!);
+
+        final user = response.data?.user;
+        if (user != null) {
+          AppData().setUserData(user);
         }
-        Helpers.showSnackBar(context,
-          response.message ?? 'Registered Successfully',
+
+        Helpers.showSnackBar(
+          context,
+          response.message ?? 'Logged in successfully',
           type: SnackType.success,
         );
-        if (response.data?.user?.role != null && response.data!.user!.role!.isNotEmpty) {
-          Future.delayed(const Duration(milliseconds: 300),() {
+
+        FcmService.instance.registerToken();
+
+        if (user?.role != null && user!.role!.isNotEmpty) {
+          await Future.delayed(const Duration(milliseconds: 300));
+          if (context.mounted) {
             Navigator.pushAndRemoveUntil(
               context,
-              MaterialPageRoute(
-                builder: (context) => HomeScreen(),
-                // response.data?.user?.role == 'employee'
-                //     ? const EmployeeHomeScreen()
-                //     : const ManagerHomeScreen(),
-              ),
-              (route) => false,
+              MaterialPageRoute(builder: (_) => HomeScreen()),
+                  (route) => false,
             );
-        });
+          }
         }
       } else {
-        Helpers.showSnackBar(context, response.message ?? 'Something went wrong');
+        Helpers.showSnackBar(
+          context,
+          response.message ?? 'Something went wrong',
+          type: SnackType.error,
+        );
       }
-
-    } catch(e) {
-      debugPrint(e.toString());
-      Helpers.showSnackBar(context,
-        'Unexpected error occured: ${e.toString()}',
+    } catch (e) {
+      debugPrint('[Login] Error: $e');
+      Helpers.showSnackBar(
+        context,
+        'Unexpected error: ${e.toString()}',
         type: SnackType.error,
       );
     } finally {
@@ -84,15 +97,12 @@ class LoginController {
   }
 
   Future<void> launchURL() async {
-    final Uri url = Uri.parse(HttpConstants.getBaseURL);
-    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+    final uri = Uri.parse(HttpConstants.getBaseURL);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              'Could not launch website',
-              style: GoogleFonts.inter(),
-            ),
+            content: const Text('Could not launch website'),
             backgroundColor: Pallete.errorColor,
           ),
         );
@@ -100,8 +110,7 @@ class LoginController {
     }
   }
 
-
-  dispose() {
+  void dispose() {
     usernameController.dispose();
     passwordController.dispose();
     orgCodeController.dispose();

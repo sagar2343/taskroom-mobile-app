@@ -20,6 +20,7 @@
         android:label="Task Room"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
+        android:enableOnBackInvokedCallback="true"
         android:usesCleartextTraffic="true">
         <activity
             android:name=".MainActivity"
@@ -53,6 +54,20 @@
 <!--            android:foregroundServiceType="location|dataSync"-->
 <!--            tools:replace="android:exported"-->
 <!--            android:exported="true"/>-->
+
+        <!-- White silhouette icon for FCM-delivered notifications (background/killed) -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_notification" />
+
+        <!-- Brand blue circle colour behind the white icon: #137FEC -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/notification_color" />
+
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="fieldwork_tasks" />
 
         <service
             android:name="id.flutter.flutter_background_service.BackgroundService"

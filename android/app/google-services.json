@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "183578397733",
+    "project_id": "taskroom-app-ecf05",
+    "storage_bucket": "taskroom-app-ecf05.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:183578397733:android:3b35d6f76c0729323cc3cc",
+        "android_client_info": {
+          "package_name": "com.example.field_work"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCD85QZV28y00fOOIuQnbgTblu5XBHbQh8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

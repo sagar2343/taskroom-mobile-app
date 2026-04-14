@@ -1,5 +1,8 @@
 import 'package:field_work/config/data/local/app_data.dart';
+import 'package:field_work/firebase_options.dart';
+import 'package:field_work/services/fcm_service.dart';
 import 'package:field_work/services/notification_helper.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'config/theme/theme.dart';
@@ -8,14 +11,20 @@ import 'features/location_tracking/service/location_background_service.dart';
 import 'features/splash/view/screen/splash_screen.dart';
 
 final ThemeNotifier themeNotifier = ThemeNotifier();
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
+
   await NotificationHelper.initialize();
+  await FcmService.initialize();
 
   await AppData().restoreInstance();
 
@@ -40,6 +49,7 @@ class MyApp extends StatelessWidget {
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: currentMode,
+          navigatorKey: navigatorKey,
           home: const Splashscreen(),
         );
       },

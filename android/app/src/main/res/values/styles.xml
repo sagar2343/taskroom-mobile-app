@@ -6,6 +6,7 @@
              the Flutter engine draws its first frame -->
         <item name="android:windowBackground">@drawable/launch_background</item>
     </style>
+
     <!-- Theme applied to the Android Window as soon as the process has started.
          This theme determines the color of the Android Window while your
          Flutter UI initializes, as well as behind your Flutter UI while its
@@ -15,4 +16,9 @@
     <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
         <item name="android:windowBackground">?android:colorBackground</item>
     </style>
+
+    <!-- FCM notification icon background colour — brand blue #137FEC
+         Referenced by AndroidManifest.xml:
+         com.google.firebase.messaging.default_notification_color -->
+    <color name="notification_color">#137FEC</color>
 </resources>
