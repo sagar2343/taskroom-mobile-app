@@ -61,7 +61,7 @@ Future<void> _fcmBackgroundHandler(RemoteMessage message) async {
 
   // Step 3: show local banner if the message carried a visible notification
   // (data-only messages have no notification payload — show one manually)
-  if (title.isNotEmpty) {
+  if (message.notification == null && title.isNotEmpty) {
     await NotificationHelper.showNotification(
       id:      NotificationHelper.idForType(type),
       title:   title,
