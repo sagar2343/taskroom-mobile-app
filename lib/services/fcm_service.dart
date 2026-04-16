@@ -36,6 +36,7 @@ import 'package:http/http.dart' as http;
 
 import '../core/http_client/http_client.dart';
 
+// ── Top-level background handler ─────────────────────────────────────────────
 // ── Background isolate entry point ────────────────────────────────────────────
 // Rules:
 //   • Must be a TOP-LEVEL function (not inside a class).
@@ -46,10 +47,7 @@ import '../core/http_client/http_client.dart';
 //   • flutter_local_notifications CAN be used here after re-initialising it.
 @pragma('vm:entry-point')
 Future<void> _fcmBackgroundHandler(RemoteMessage message) async {
-  // Step 1: re-init Firebase in this isolate (mandatory)
   await Firebase.initializeApp();
-
-  // Step 2: re-init local notifications so we can show a banner
   await NotificationHelper.initialize();
 
   final title   = message.notification?.title ?? 'FieldWork';
@@ -59,16 +57,16 @@ Future<void> _fcmBackgroundHandler(RemoteMessage message) async {
 
   debugPrint('[FCM Background] type=$type title=$title');
 
-  // Step 3: show local banner if the message carried a visible notification
-  // (data-only messages have no notification payload — show one manually)
+  // Show a local banner for data-only messages (no notification payload)
   if (message.notification == null && title.isNotEmpty) {
     await NotificationHelper.showNotification(
       id:      NotificationHelper.idForType(type),
       title:   title,
       body:    body,
-      payload: taskId,   // passed back to tap handler
+      payload: taskId,
     );
   }
+  debugPrint('[FCM:BG] type=$type title=$title');
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -80,27 +78,19 @@ class FcmService {
   static final FcmService instance = FcmService._();
 
   final _fm = FirebaseMessaging.instance;
-
-  // Guards against registering the onTokenRefresh listener more than once.
-  // Without this, calling registerToken() from both splash + login creates
-  // duplicate listeners that each send the token to the server on refresh.
   bool _tokenRefreshListenerAttached = false;
   String? _currentToken;
 
   String? get currentToken => _currentToken;
 
   // ── initialize() ─────────────────────────────────────────────────────────────
-  // Call ONCE in main(), after Firebase.initializeApp() and
-  // NotificationHelper.initialize().
-  // Sets up background handler, foreground listener, and tap handlers.
-  // Does NOT request the token — that happens in registerToken() after login.
+  // Call ONCE in main() after Firebase.initializeApp() + NotificationHelper.initialize().
   static Future<void> initialize() async {
-    // Register background handler FIRST — before any await in main()
     FirebaseMessaging.onBackgroundMessage(_fcmBackgroundHandler);
 
-    // iOS only: show banners even when app is foregrounded
     if (Platform.isIOS) {
-      await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+      await FirebaseMessaging.instance
+          .setForegroundNotificationPresentationOptions(
         alert: true,
         badge: true,
         sound: true,

@@ -34,15 +34,14 @@ class NotificationHelper {
 
     await flutterLocalNotificationsPlugin.initialize(
       settings: const InitializationSettings(
-          android: androidSettings, iOS: iosSettings),
+        android: androidSettings,
+        iOS: iosSettings,
+      ),
       onDidReceiveNotificationResponse: (response) {
-        // The payload carries taskId so the tap handler can navigate.
-        // FcmService._handleNotificationTap() is called for remote taps;
-        // this callback handles taps on *local* notifications we show
-        // while the app is in the foreground.
-        debugPrint('[NotificationHelper] Local tap payload: ${response.payload}');
-        // Navigation is handled in FcmService — nothing to do here for now.
+        debugPrint('[NotificationHelper] Local tap: ${response.payload}');
       },
+      // Required for background local-notification taps — must be top-level fn
+      onDidReceiveBackgroundNotificationResponse: _backgroundTapHandler,
     );
 
     // Create (or update) the high-importance Android channel.
@@ -103,7 +102,10 @@ class NotificationHelper {
       id: id,
       title: title,
       body: body,
-      notificationDetails: const NotificationDetails(android: androidDetails, iOS: iosDetails),
+      notificationDetails: const NotificationDetails(
+        android: androidDetails,
+        iOS: iosDetails,
+      ),
       payload: payload,
     );
   }
@@ -126,4 +128,10 @@ class NotificationHelper {
     };
     return ids[type] ?? 9999;
   }
+}
+
+// Must be top-level + annotated for the background callback
+@pragma('vm:entry-point')
+void _backgroundTapHandler(NotificationResponse response) {
+  debugPrint('[NotificationHelper:BG] Tap: ${response.payload}');
 }
