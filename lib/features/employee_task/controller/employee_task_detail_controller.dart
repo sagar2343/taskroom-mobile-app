@@ -18,6 +18,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../config/theme/app_pallete.dart';
 import '../../../core/utils/helpers.dart';
+import '../../../services/upload_service.dart';
 
 class EmployeeTaskController {
   final BuildContext context;
@@ -165,16 +166,37 @@ class EmployeeTaskController {
       }) async {
     if (isActionInProgress) return;
 
+    // Validate before locking the UI
     if (requirePhoto && capturedPhoto == null) {
-      _snack('Please take a photo first'); return;
+      _snack('Please take a photo first');
+      return;
     }
     if (requireSignature && signatureBase64 == null) {
-      _snack('Please collect the signature first'); return;
+      _snack('Please collect the signature first');
+      return;
     }
-    _setAction(true);
-    try {
-      final String? uploadedPhotoUrl = capturedPhoto?.path;
 
+    _setAction(true);
+
+    try {
+
+      String? uploadedPhotoUrl;
+      if (capturedPhoto != null) {
+        uploadedPhotoUrl = await UploadService.uploadStepPhoto(
+          capturedPhoto!,
+          taskId: taskId,
+          stepId: stepId,
+        );
+
+        if (uploadedPhotoUrl == null) {
+          if (context.mounted) {
+            _snack('Photo upload failed. Check your connection and try again.');
+          }
+          return;
+        }
+      }
+
+      // ── Step 2: Capture GPS if required ────────────────────────────────────
       Map<String, dynamic>? locationPayload;
       if (requireLocationCheck) {
         final pos = await _safeGetLocation();
@@ -186,8 +208,10 @@ class EmployeeTaskController {
         }
       }
 
+      // ── Step 3: Call backend to complete the step ──────────────────────────
       final res = await _dataSource.completeStep(
-        taskId, stepId,
+        taskId,
+        stepId,
         photoUrl:          uploadedPhotoUrl,
         signatureData:     signatureBase64,
         signatureSignedBy: signatureFrom,
@@ -199,19 +223,28 @@ class EmployeeTaskController {
 
       if (res?['success'] == true) {
         final taskDone = res!['data']?['taskCompleted'] == true;
-        _snack(
-          taskDone ? '🎉 All steps done! Task completed!' : 'Step completed!',
-          success: true,
-        );
+        // _snack(
+        //   taskDone ? '🎉 All steps done! Task completed!' : 'Step completed!',
+        //   success: true,
+        // );
         _clearCompletionState();
         await loadTask();
+
+        if (context.mounted) {
+          _snack(
+            taskDone ? '🎉 All steps done! Task completed!' : 'Step completed!',
+            success: true,
+          );
+        }
 
         // ── Stop tracking when entire task is done ─────────────────────
         if (taskDone) {
           await LocationBackgroundService.instance.stopTracking();
         }
       } else {
-        _snack(res?['message'] ?? 'Failed to complete step');
+        if (context.mounted) {
+          _snack(res?['message'] ?? 'Failed to complete step');
+        }
       }
     } finally { _setAction(false); }
   }
@@ -223,9 +256,15 @@ class EmployeeTaskController {
   Future<void> capturePhoto() async {
     try {
       final xf = await _picker.pickImage(
-        source: ImageSource.camera, imageQuality: 75, maxWidth: 1280,
+          source: ImageSource.camera,
+          imageQuality: 70,
+          maxWidth: 1280,
+          maxHeight: 1280,
       );
-      if (xf != null) { capturedPhoto = File(xf.path); reloadData(); }
+      if (xf != null) {
+        capturedPhoto = File(xf.path);
+        reloadData();
+      }
     } catch (_) {
       _snack('Could not open camera. Check permissions.');
     }

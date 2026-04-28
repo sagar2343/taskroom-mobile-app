@@ -56,3 +56,6 @@ const APIRouteAttendanceToday    = '/api/tasks/attendance/today';
 const APIRouteAttendanceHistory  = '/api/tasks/attendance/history';
 
 const APIRouteTaskActiveStatus   = '/api/tasks/active-status';
+
+const APIRouteUploadProfilePicture = '/api/upload/profile-picture';
+const APIRouteUploadStepPhoto      = '/api/upload/step-photo';

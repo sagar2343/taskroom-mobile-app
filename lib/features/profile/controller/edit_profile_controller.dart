@@ -1,8 +1,12 @@
+import 'dart:io';
+
 import 'package:field_work/core/utils/helpers.dart';
 import 'package:field_work/features/profile/data/profile_datasource.dart';
 import 'package:field_work/features/widgets/custom_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:field_work/config/theme/app_pallete.dart';
+import 'package:image_picker/image_picker.dart';
+import '../../../services/upload_service.dart';
 import '../../auth/model/user_model.dart';
 
 class EditProfileController {
@@ -22,30 +26,79 @@ class EditProfileController {
   TextEditingController departmentController = TextEditingController();
   TextEditingController designationController = TextEditingController();
 
+  File? localProfileImage;
+  bool  isUploadingPicture = false;
+
+  final _picker = ImagePicker();
+
   EditProfileController({
     required this.context,
     required this.reloadData,
     required this.userData,
   }) {
-    // Initialize controllers with existing data
-    usernameController.text = userData.username ?? '';
-    fullNameController.text = userData.fullName ?? '';
-    emailController.text = userData.email ?? '';
-    mobileController.text = userData.mobile ?? '';
-    departmentController.text = userData.department ?? '';
+    // Pre-fill fields with existing user data
+    usernameController.text    = userData.username    ?? '';
+    fullNameController.text    = userData.fullName    ?? '';
+    emailController.text       = userData.email       ?? '';
+    mobileController.text      = userData.mobile      ?? '';
+    departmentController.text  = userData.department  ?? '';
     designationController.text = userData.designation ?? '';
-    reloadData();
+    // reloadData();
   }
 
-  void init() async {
-    // Any initialization logic
+  Future<void> pickAndUploadProfilePicture() async {
+    try {
+      final xf = await _picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 75,
+        maxWidth: 800,
+        maxHeight: 800,
+      );
+      if (xf == null) return;
+
+      localProfileImage = File(xf.path);
+      isUploadingPicture = true;
+      reloadData();
+
+      final url = await UploadService.uploadProfilePicture(localProfileImage!);
+
+      if (url != null) {
+        if (context.mounted) {
+          Helpers.showSnackBar(
+            context,
+            'Profile picture updated!',
+            type: SnackType.success,
+          );
+        }
+      } else {
+        localProfileImage = null;   // revert preview on failure
+        if (context.mounted) {
+          Helpers.showSnackBar(
+            context,
+            'Upload failed. Please try again.',
+            type: SnackType.error,
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('pickAndUploadProfilePicture error: $e');
+      localProfileImage = null;
+      if (context.mounted) {
+        Helpers.showSnackBar(
+          context,
+          'Could not open image picker.',
+          type: SnackType.error,
+        );
+      }
+    } finally {
+      isUploadingPicture = false;
+      reloadData();
+    }
   }
 
   /// Handle save button press
   void handleSave() {
-    if (!formKey.currentState!.validate()) {
-      return;
-    }
+    if (!formKey.currentState!.validate()) return;
 
     final updateData = {
       'username': usernameController.text.trim(),
@@ -65,7 +118,6 @@ class EditProfileController {
     reloadData();
 
     try {
-      // TODO: Replace with actual API call
       final response = await ProfileDatasource().updateProfile(data);
 
       if (response == null) {
@@ -78,9 +130,8 @@ class EditProfileController {
       }
 
       if (response.success ?? false) {
-        if (context.mounted) {
-          Navigator.pop(context, true);
-        }
+        if (context.mounted) Navigator.pop(context, true);
+
         Helpers.showSnackBar(
           context,
           'Profile updated successfully!',

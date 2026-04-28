@@ -77,6 +77,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Profile Picture Section
+              // Profile Picture Section
               Center(
                 child: Stack(
                   children: [
@@ -96,10 +97,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         height: 100,
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
-                            colors: [
-                              Pallete.primaryColor,
-                              Pallete.primaryLightColor,
-                            ],
+                            colors: [Pallete.primaryColor, Pallete.primaryLightColor],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
@@ -109,7 +107,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             width: 3,
                           ),
                         ),
-                        child: widget.userData.profilePicture != null
+                        child: _controller.localProfileImage != null
+                            ? ClipOval(
+                          child: Image.file(
+                            _controller.localProfileImage!,
+                            fit: BoxFit.cover,
+                          ),
+                        )
+                            : widget.userData.profilePicture != null
                             ? ClipOval(
                           child: Image.network(
                             widget.userData.profilePicture!,
@@ -122,39 +127,36 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             : AvatarInitials(fullName: widget.userData.fullName),
                       ),
                     ),
-                    // Positioned(
-                    //   bottom: 0,
-                    //   right: 0,
-                    //   child: Container(
-                    //     padding: const EdgeInsets.all(8),
-                    //     decoration: BoxDecoration(
-                    //       gradient: LinearGradient(
-                    //         colors: [
-                    //           Pallete.primaryColor,
-                    //           Pallete.primaryLightColor,
-                    //         ],
-                    //       ),
-                    //       shape: BoxShape.circle,
-                    //       border: Border.all(
-                    //         color: Theme.of(context).scaffoldBackgroundColor,
-                    //         width: 3,
-                    //       ),
-                    //       boxShadow: [
-                    //         BoxShadow(
-                    //           color:
-                    //           Pallete.primaryColor.withValues(alpha: 0.3),
-                    //           blurRadius: 8,
-                    //           offset: const Offset(0, 2),
-                    //         ),
-                    //       ],
-                    //     ),
-                    //     child: Icon(
-                    //       Icons.camera_alt,
-                    //       color: Colors.white,
-                    //       size: 20,
-                    //     ),
-                    //   ),
-                    // ),
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: GestureDetector(
+                        onTap: _controller.pickAndUploadProfilePicture,
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [Pallete.primaryColor, Pallete.primaryLightColor],
+                            ),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Theme.of(context).scaffoldBackgroundColor,
+                              width: 3,
+                            ),
+                          ),
+                          child: _controller.isUploadingPicture
+                              ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                              : const Icon(Icons.camera_alt, color: Colors.white, size: 16),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
