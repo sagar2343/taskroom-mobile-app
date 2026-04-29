@@ -142,6 +142,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     hint: 'Enter your password',
                     prefixIcon: Icons.lock_outline,
                     obscureText: _controller.obscurePassword,
+                    onFieldSubmitted:(val)=> _controller.handleLogin(),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _controller.obscurePassword

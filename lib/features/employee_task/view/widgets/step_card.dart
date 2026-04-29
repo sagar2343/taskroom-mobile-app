@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../config/theme/app_pallete.dart';
 import '../../../../core/utils/helpers.dart';
+import '../../../widgets/image_preview.dart';
 import '../../controller/employee_task_detail_controller.dart';
 import '../../../task/model/task_model.dart';
 
@@ -535,23 +536,34 @@ class _CompletionSummary extends StatelessWidget {
         // ── Submitted photo ─────────────────────────────────────────────
         if (step.submittedPhotoUrl?.isNotEmpty == true) ...[
           const SizedBox(height: 12),
-          _SummaryRow(
-            icon: Icons.camera_alt_rounded,
-            color: Pallete.kAmber,
-            label: 'Photo',
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                step.submittedPhotoUrl!,
-                height: 72, width: 72, fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  width: 72, height: 72,
-                  decoration: BoxDecoration(
-                    color: Pallete.kAmber.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
+          Hero(
+            tag: 'step_photo',
+            child: GestureDetector(
+              onTap: () => ImagePreview.show(
+                context,
+                url:   step.submittedPhotoUrl!,
+                label: 'Photo',
+                heroTag: 'step_photo',
+              ),
+              child: _SummaryRow(
+                icon: Icons.camera_alt_rounded,
+                color: Pallete.kAmber,
+                label: 'Photo',
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.network(
+                    step.submittedPhotoUrl!,
+                    height: 72, width: 72, fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      width: 72, height: 72,
+                      decoration: BoxDecoration(
+                        color: Pallete.kAmber.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.broken_image_rounded,
+                          color: Pallete.kAmber, size: 22),
+                    ),
                   ),
-                  child: const Icon(Icons.broken_image_rounded,
-                      color: Pallete.kAmber, size: 22),
                 ),
               ),
             ),

@@ -16,6 +16,7 @@ class CustomTextField extends StatelessWidget {
   final TextInputType? keyboardType;
   final int? maxLines;
   final TextInputFormatter? textInputFormatter;
+  final void Function(String)? onFieldSubmitted;
 
   const CustomTextField({
     super.key,
@@ -31,6 +32,7 @@ class CustomTextField extends StatelessWidget {
     this.keyboardType,
     this.maxLines,
     this.textInputFormatter,
+    this.onFieldSubmitted,
   });
 
   @override
@@ -58,6 +60,7 @@ class CustomTextField extends StatelessWidget {
           maxLength: maxLength,
           maxLines: maxLines ?? 1,
           validator: validator,
+          onFieldSubmitted: onFieldSubmitted,
           style: GoogleFonts.inter(
             fontSize: 16,
             fontWeight: FontWeight.w500,

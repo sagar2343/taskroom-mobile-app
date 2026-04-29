@@ -4,6 +4,8 @@ import 'package:field_work/features/widgets/animated_screen_wrapper.dart';
 import 'package:field_work/features/widgets/avatar_initials.dart';
 import 'package:flutter/material.dart';
 
+import '../../../widgets/image_preview.dart';
+
 class MemberTabScreen extends StatefulWidget {
   final String roomId;
 
@@ -259,53 +261,61 @@ class _MemberCard extends StatelessWidget {
         children: [
           // Avatar
           Hero(
-            tag: 'member_${member.id}',
-            child: Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Pallete.primaryColor,
-                    Pallete.primaryLightColor,
+            tag: 'member_${user.id}',
+            child: GestureDetector(
+              onTap: () => ImagePreview.show(
+                context,
+                url:   user!.profilePicture,
+                label: user!.fullName,
+                heroTag: 'member_${user.id}',
+              ),
+              child: Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Pallete.primaryColor,
+                      Pallete.primaryLightColor,
+                    ],
+                  ),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Pallete.primaryColor.withValues(alpha: 0.3),
+                    width: 2,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Pallete.primaryColor.withValues(alpha: 0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
                   ],
                 ),
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: Pallete.primaryColor.withValues(alpha: 0.3),
-                  width: 2,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Pallete.primaryColor.withValues(alpha: 0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+                child: user?.profilePicture != null
+                    ? ClipOval(
+                      child: Image.network(
+                        user!.profilePicture!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return AvatarInitials(
+                            fullName: user.fullName ?? 'U',
+                            textStyle: textTheme.titleSmall!.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          );
+                        },
+                      ),
+                    )
+                    : AvatarInitials(
+                      fullName: user?.fullName ?? 'U',
+                      textStyle: textTheme.titleSmall!.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
               ),
-              child: user?.profilePicture != null
-                  ? ClipOval(
-                    child: Image.network(
-                      user!.profilePicture!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return AvatarInitials(
-                          fullName: user.fullName ?? 'U',
-                          textStyle: textTheme.titleSmall!.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        );
-                      },
-                    ),
-                  )
-                  : AvatarInitials(
-                    fullName: user?.fullName ?? 'U',
-                    textStyle: textTheme.titleSmall!.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
             ),
           ),
 

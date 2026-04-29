@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:field_work/config/theme/app_pallete.dart';
 
 import '../../widgets/icon_box_header.dart';
+import '../../widgets/image_preview.dart';
 
 class ProfileScreen extends StatefulWidget {
 
@@ -279,35 +280,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             child: Hero(
               tag: 'avatar',
-              child: Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Pallete.primaryColor,
-                      Pallete.primaryLightColor,
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Pallete.primaryColor.withValues(alpha: 0.5),
-                    width: 3,
-                  ),
+              child: GestureDetector(
+                onTap: () => ImagePreview.show(
+                  context,
+                  url:   _controller.userData?.profilePicture!,
+                  label: _controller.userData?.fullName ?? '',
+                  heroTag: 'avatar',
                 ),
-                child: _controller.userData?.profilePicture != null
-                    ? ClipOval(
-                      child: Image.network(
-                        _controller.userData?.profilePicture ?? "",
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return _buildAvatarInitials();
-                        },
-                      ),
-                    )
-                    : _buildAvatarInitials(),
+                child: Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Pallete.primaryColor,
+                        Pallete.primaryLightColor,
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Pallete.primaryColor.withValues(alpha: 0.5),
+                      width: 3,
+                    ),
+                  ),
+                  child: _controller.userData?.profilePicture != null
+                      ? ClipOval(
+                        child: Image.network(
+                          _controller.userData?.profilePicture ?? "",
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return _buildAvatarInitials();
+                          },
+                        ),
+                      )
+                      : _buildAvatarInitials(),
+                ),
               ),
             ),
           ),

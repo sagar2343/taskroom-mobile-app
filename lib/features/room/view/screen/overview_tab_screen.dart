@@ -6,6 +6,8 @@ import 'package:field_work/features/widgets/icon_box_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../widgets/image_preview.dart';
+
 class OverviewTabScreen extends StatelessWidget {
   final RoomModel room;
   final VoidCallback onRefresh;
@@ -153,7 +155,9 @@ class OverviewTabScreen extends StatelessWidget {
         children: [
           // Room Icon
           Container(
-            padding: const EdgeInsets.all(20),
+            width: 100,
+            height: 100,
+            padding: room.roomImage != null ? null :  const EdgeInsets.all(20),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
@@ -170,11 +174,37 @@ class OverviewTabScreen extends StatelessWidget {
                 ),
               ],
             ),
-            child: Icon(
-              Helpers.getRoomIcon(room.category, room.isArchived),
-              size: 48,
-              color: Colors.white,
-            ),
+            child: room.roomImage != null
+                ? Hero(
+                  tag: 'room_${room.id}',
+                  child: GestureDetector(
+                    onTap: () => ImagePreview.show(
+                      context,
+                      url:  room.roomImage,
+                      label: room.name ?? '',
+                      heroTag: 'room_${room.id}',
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(100),
+                      child: Image.network(
+                        room.roomImage!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Icon(
+                            Helpers.getRoomIcon(room.category, room.isArchived),
+                            color: Colors.white,
+                            size: 48,
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                )
+                : Icon(
+                  Helpers.getRoomIcon(room.category, room.isArchived),
+                  size: 48,
+                  color: Colors.white,
+                ),
           ),
 
           const SizedBox(height: 20),

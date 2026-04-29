@@ -3,6 +3,7 @@ import 'package:field_work/features/member/model/room_member_response.dart';
 import 'package:field_work/features/task/controller/create_task_controller.dart';
 import 'package:field_work/features/widgets/custom_textfield.dart';
 import 'package:flutter/material.dart';
+import '../../../widgets/image_preview.dart';
 import '../../model/task_form_models.dart';
 
 class CreateTaskScreen extends StatefulWidget {
@@ -787,16 +788,27 @@ class _MemberTile extends StatelessWidget {
             children: [
               Stack(
                 children: [
-                  CircleAvatar(
-                    radius: 20,
-                    backgroundColor: Pallete.primaryColor.withValues(alpha:0.15),
-                    backgroundImage: member.user?.profilePicture != null ? NetworkImage(member.user!.profilePicture!) : null,
-                    child: member.user?.profilePicture == null
-                        ? Text(
-                      (member.user?.fullName?[0] ?? 'NA').toUpperCase(),
-                      style: const TextStyle(fontWeight: FontWeight.w800, color: Pallete.primaryColor, fontSize: 15),
-                    )
-                        : null,
+                  Hero(
+                    tag: 'member_profile${member.id}',
+                    child: GestureDetector(
+                      onTap: () => ImagePreview.show(
+                        context,
+                        url:   member.user?.profilePicture!,
+                        label: member.user?.fullName ?? '',
+                        heroTag: 'member_profile${member.id}',
+                      ),
+                      child: CircleAvatar(
+                        radius: 20,
+                        backgroundColor: Pallete.primaryColor.withValues(alpha:0.15),
+                        backgroundImage: member.user?.profilePicture != null ? NetworkImage(member.user!.profilePicture!) : null,
+                        child: member.user?.profilePicture == null
+                            ? Text(
+                          (member.user?.fullName?[0] ?? 'NA').toUpperCase(),
+                          style: const TextStyle(fontWeight: FontWeight.w800, color: Pallete.primaryColor, fontSize: 15),
+                        )
+                            : null,
+                      ),
+                    ),
                   ),
                   if (member.user?.isOnline ?? false)
                     Positioned(

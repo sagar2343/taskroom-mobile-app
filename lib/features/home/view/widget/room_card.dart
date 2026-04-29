@@ -3,6 +3,7 @@ import 'package:field_work/config/theme/app_pallete.dart';
 import 'package:field_work/features/home/models/room_model.dart';
 
 import '../../../../core/utils/helpers.dart';
+import '../../../widgets/image_preview.dart';
 
 class RoomCard extends StatelessWidget {
   final RoomModel room;
@@ -58,7 +59,9 @@ class RoomCard extends StatelessWidget {
                   children: [
                     // Room Icon
                     Container(
-                      padding: const EdgeInsets.all(12),
+                      width: 50,
+                      height: 50,
+                      padding: room.roomImage != null ? null : const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
@@ -75,11 +78,37 @@ class RoomCard extends StatelessWidget {
                           ),
                         ],
                       ),
-                      child: Icon(
-                        Helpers.getRoomIcon(room.category, room.isArchived),
-                        color: Colors.white,
-                        size: 24,
-                      ),
+                      child: room.roomImage != null
+                          ? Hero(
+                            tag: 'room_${room.id}',
+                            child: GestureDetector(
+                              onTap: () => ImagePreview.show(
+                                context,
+                                url:  room.roomImage,
+                                label: room.name ?? '',
+                                heroTag: 'room_${room.id}',
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(14),
+                                child: Image.network(
+                                  room.roomImage!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Icon(
+                                      Helpers.getRoomIcon(room.category, room.isArchived),
+                                      color: Colors.white,
+                                      size: 24,
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                          )
+                          : Icon(
+                            Helpers.getRoomIcon(room.category, room.isArchived),
+                            color: Colors.white,
+                            size: 24,
+                          ),
                     ),
                     const SizedBox(width: 12),
                     // Room Info

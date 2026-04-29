@@ -8,6 +8,8 @@ import 'package:field_work/features/task/view/screen/edit_task_screen.dart';
 import 'package:field_work/features/task/view/widgets/task_location_map_sheet.dart';
 import 'package:flutter/material.dart';
 
+import '../../../widgets/image_preview.dart';
+
 class ManagerTaskDetailScreen extends StatefulWidget {
   final String taskId;
   final VoidCallback? onTaskUpdated;
@@ -855,22 +857,30 @@ class _StepExpandedContent extends StatelessWidget {
             icon: Icons.camera_alt_rounded,
             color: _kAmber,
             label: 'Photo Proof',
-            child: GestureDetector(
-              onTap: () => _openPhoto(context, s.submittedPhotoUrl!),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: Image.network(
-                  s.submittedPhotoUrl!,
-                  height: 120, width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    height: 60,
-                    decoration: BoxDecoration(
-                        color: _kAmber.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(10)),
-                    child: const Center(
-                        child: Icon(Icons.broken_image_rounded,
-                            color: _kAmber)),
+            child: Hero(
+              tag: 'Photo_proof',
+              child: GestureDetector(
+                onTap: () => ImagePreview.show(
+                  context,
+                  url:   s.submittedPhotoUrl!,
+                  label: 'Photo Proof',
+                  heroTag: 'Photo_proof',
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Image.network(
+                    s.submittedPhotoUrl!,
+                    height: 120, width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      height: 60,
+                      decoration: BoxDecoration(
+                          color: _kAmber.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(10)),
+                      child: const Center(
+                          child: Icon(Icons.broken_image_rounded,
+                              color: _kAmber)),
+                    ),
                   ),
                 ),
               ),
@@ -1010,32 +1020,32 @@ class _StepExpandedContent extends StatelessWidget {
     );
   }
 
-  void _openPhoto(BuildContext context, String url) {
-    showDialog(
-      context: context,
-      builder: (_) => Dialog(
-        backgroundColor: Colors.transparent,
-        child: Stack(children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: Image.network(url, fit: BoxFit.contain),
-          ),
-          Positioned(top: 8, right: 8,
-              child: GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                      color: Colors.black54,
-                      borderRadius: BorderRadius.circular(10)),
-                  child: const Icon(Icons.close_rounded,
-                      color: Colors.white, size: 18),
-                ),
-              )),
-        ]),
-      ),
-    );
-  }
+  // void _openPhoto(BuildContext context, String url) {
+  //   showDialog(
+  //     context: context,
+  //     builder: (_) => Dialog(
+  //       backgroundColor: Colors.transparent,
+  //       child: Stack(children: [
+  //         ClipRRect(
+  //           borderRadius: BorderRadius.circular(16),
+  //           child: Image.network(url, fit: BoxFit.contain),
+  //         ),
+  //         Positioned(top: 8, right: 8,
+  //             child: GestureDetector(
+  //               onTap: () => Navigator.pop(context),
+  //               child: Container(
+  //                 padding: const EdgeInsets.all(8),
+  //                 decoration: BoxDecoration(
+  //                     color: Colors.black54,
+  //                     borderRadius: BorderRadius.circular(10)),
+  //                 child: const Icon(Icons.close_rounded,
+  //                     color: Colors.white, size: 18),
+  //               ),
+  //             )),
+  //       ]),
+  //     ),
+  //   );
+  // }
 }
 
 
