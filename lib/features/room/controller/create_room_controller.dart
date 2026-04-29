@@ -53,6 +53,7 @@ class CreateRoomController {
       maxMembersController.text = '${roomToEdit!.settings?.maxMembers ?? 50}';
       autoAcceptMembers = roomToEdit!.settings?.autoAcceptMembers ?? true;
       allowMembersToSeeEachOther = roomToEdit!.settings?.allowMembersToSeeEachOther ?? true;
+      uploadedRoomImageUrl       = roomToEdit!.roomImage;
     } else {
       // Set default category for create mode
       categoryController.text = categoryOptions[0];

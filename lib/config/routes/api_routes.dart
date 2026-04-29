@@ -57,6 +57,9 @@ const APIRouteAttendanceHistory  = '/api/tasks/attendance/history';
 
 const APIRouteTaskActiveStatus   = '/api/tasks/active-status';
 
+// fcm token
+const APIRouteFcmUrl = '/api/fcm/fcm-token';
+
 // Images upload
 const APIRouteUploadProfilePicture = '/api/upload/profile-picture';
 const APIRouteUploadStepPhoto      = '/api/upload/step-photo';

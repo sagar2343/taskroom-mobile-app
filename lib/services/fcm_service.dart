@@ -34,6 +34,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
+import '../config/routes/api_routes.dart';
 import '../core/http_client/http_client.dart';
 
 // ── Top-level background handler ─────────────────────────────────────────────
@@ -192,7 +193,7 @@ class FcmService {
       if (accessToken == null) {
         // Tell the server to clear the stored FCM token for this user
         await _client.delete(
-          Uri.parse('${HttpConstants.getBaseURL}/api/fcm/fcm-token'),
+          Uri.parse('${HttpConstants.getBaseURL}$APIRouteFcmUrl'),
           headers: HttpConstants.getHttpHeaders(accessToken),
           // headers: {
           //   'Authorization': 'Bearer $authToken',
@@ -222,7 +223,7 @@ class FcmService {
       }
 
         final res = await _client.post(
-        Uri.parse('${HttpConstants.getBaseURL}/api/fcm/fcm-token'),
+        Uri.parse('${HttpConstants.getBaseURL}$APIRouteFcmUrl'),
         headers: HttpConstants.getHttpHeaders(accessToken),
         // headers: {
         //   'Authorization': 'Bearer $authToken',
