@@ -6,6 +6,8 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 
+import '../config/routes/api_routes.dart';
+
 class UploadService {
   static String get _base => HttpConstants.getBaseURL;
   static String? get _token => AppData().getAccessToken();
@@ -14,7 +16,7 @@ class UploadService {
 
   static Future<String?> uploadProfilePicture(File imageFile) async {
     return _uploadImage(
-      endpoint: '/api/upload/profile-picture',
+      endpoint: APIRouteUploadProfilePicture,
       imageFile: imageFile,
     );
   }
@@ -25,9 +27,21 @@ class UploadService {
         required String stepId,
       }) async {
     return _uploadImage(
-      endpoint: '/api/upload/step-photo',
+      endpoint: APIRouteUploadStepPhoto,
       imageFile: imageFile,
       extraFields: {'taskId': taskId, 'stepId': stepId},
+    );
+  }
+
+  /// Upload a room image. Returns Cloudinary secure_url or null.
+  static Future<String?> uploadRoomImage(
+      File imageFile, {
+        required String roomId,
+      }) async {
+    return _uploadImage(
+      endpoint: APIRouteUploadRoomImage,
+      imageFile: imageFile,
+      extraFields: {'roomId': roomId},
     );
   }
 

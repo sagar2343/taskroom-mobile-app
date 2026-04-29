@@ -38,6 +38,9 @@ class _CreateRoomScreenState extends State<CreateRoomScreen> {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final hasLocal    = _controller.localRoomImage != null;
+    final hasRemote   = _controller.uploadedRoomImageUrl != null && !hasLocal;
+    final hasAnyImage = hasLocal || hasRemote;
 
     return Scaffold(
       appBar: AppBar(
@@ -75,41 +78,99 @@ class _CreateRoomScreenState extends State<CreateRoomScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header Icon
-              Center(
+              GestureDetector(
+              onTap: _controller.isUploadingImage ? null : _controller.pickAndUploadRoomImage,
                 child: Container(
-                  padding: const EdgeInsets.all(24),
+                  height: 180,
+                  width:  double.infinity,
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Pallete.primaryColor.withValues(alpha: 0.2),
-                        Pallete.primaryColor.withValues(alpha: 0.05),
-                      ],
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: hasAnyImage
+                          ? Pallete.primaryColor.withValues(alpha: 0.4)
+                          : Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+                      width: hasAnyImage ? 2 : 1.5,
                     ),
-                    shape: BoxShape.circle,
+                    color: Theme.of(context).colorScheme.surface,
                   ),
-                  child: Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Pallete.primaryColor,
-                          Pallete.primaryLightColor,
-                        ],
-                      ),
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Pallete.primaryColor.withValues(alpha: 0.3),
-                          blurRadius: 20,
-                          spreadRadius: 2,
+                  clipBehavior: Clip.antiAlias,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+
+                      // ── Image (local preview or remote Cloudinary URL) ─────────────
+                      if (hasLocal)
+                        Image.file(_controller.localRoomImage!, fit: BoxFit.cover)
+                      else if (hasRemote)
+                        Image.network(
+                          _controller.uploadedRoomImageUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => _placeholder(context),
+                        )
+                      else
+                        _placeholder(context),
+
+                      // ── Loading overlay ────────────────────────────────────────────
+                      if (_controller.isUploadingImage)
+                        Container(
+                          color: Colors.black54,
+                          child: const Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                                SizedBox(height: 10),
+                                Text('Uploading…',
+                                    style: TextStyle(color: Colors.white, fontSize: 13)),
+                              ],
+                            ),
+                          ),
                         ),
-                      ],
-                    ),
-                    child: Icon(
-                      Icons.add_circle_outline,
-                      size: 48,
-                      color: Colors.white,
-                    ),
+
+                      // ── Edit / Remove buttons (when image is set) ─────────────────
+                      if (hasAnyImage && !_controller.isUploadingImage)
+                        Positioned(
+                          top: 8, right: 8,
+                          child: Row(
+                            children: [
+                              _ImageActionButton(
+                                icon:    Icons.edit,
+                                onTap:   _controller.pickAndUploadRoomImage,
+                                tooltip: 'Change image',
+                              ),
+                              const SizedBox(width: 8),
+                              _ImageActionButton(
+                                icon:    Icons.delete_outline,
+                                onTap:   _controller.removeRoomImage,
+                                tooltip: 'Remove image',
+                                danger:  true,
+                              ),
+                            ],
+                          ),
+                        ),
+
+                      // ── Camera-icon badge (bottom-right when image is set) ─────────
+                      if (hasAnyImage && !_controller.isUploadingImage)
+                        Positioned(
+                          bottom: 10, right: 10,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color:        Pallete.primaryColor,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.photo_camera, color: Colors.white, size: 14),
+                                SizedBox(width: 4),
+                                Text('Change', style: TextStyle(color: Colors.white, fontSize: 12,
+                                    fontWeight: FontWeight.w600)),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               ),
@@ -270,8 +331,72 @@ class _CreateRoomScreenState extends State<CreateRoomScreen> {
       ),
     );
   }
+
+  Widget _placeholder(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          padding:    const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(colors: [
+              Pallete.primaryColor.withValues(alpha: 0.15),
+              Pallete.primaryColor.withValues(alpha: 0.05),
+            ]),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(Icons.add_photo_alternate_outlined,
+              size: 40, color: Pallete.primaryColor),
+        ),
+        const SizedBox(height: 10),
+        Text('Add Room Image',
+            style: TextStyle(
+                color:      Pallete.primaryColor,
+                fontWeight: FontWeight.w600,
+                fontSize:   14)),
+        const SizedBox(height: 4),
+        Text('Tap to choose from gallery',
+            style: TextStyle(
+                color:    Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                fontSize: 12)),
+      ],
+    );
+  }
 }
 
+class _ImageActionButton extends StatelessWidget {
+  final IconData  icon;
+  final VoidCallback onTap;
+  final String    tooltip;
+  final bool      danger;
+
+  const _ImageActionButton({
+    required this.icon,
+    required this.onTap,
+    required this.tooltip,
+    this.danger = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color:        danger
+                ? Colors.red.withValues(alpha: 0.85)
+                : Colors.black54,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, color: Colors.white, size: 18),
+        ),
+      ),
+    );
+  }
+}
 
 class _CategoryDropdown extends StatelessWidget {
   final CreateRoomController controller;
