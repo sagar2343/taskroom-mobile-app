@@ -87,6 +87,29 @@ class UserModel {
       'designation': designation,
     };
   }
+
+  UserModel copyWith({
+    bool? isOnline,
+  }) {
+    return UserModel(
+      id: id,
+      organization: organization,
+      username: username,
+      mobile: mobile,
+      role: role,
+      fullName: fullName,
+      email: email,
+      profilePicture: profilePicture,
+      employeeId: employeeId,
+      managerId: managerId,
+      currentLocation: currentLocation,
+      isOnline: isOnline ?? this.isOnline,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      department: department,
+      designation: designation,
+    );
+  }
 }
 
 class UserLocation {

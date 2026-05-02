@@ -7,6 +7,8 @@ import 'package:field_work/features/widgets/animated_screen_wrapper.dart';
 import 'package:field_work/features/widgets/avatar_initials.dart';
 import 'package:flutter/material.dart';
 
+import '../../../widgets/image_preview.dart';
+
 class EmployeeAttendanceDetailScreen extends StatefulWidget {
   final String employeeId;
   final String employeeName;
@@ -233,17 +235,28 @@ class _EmployeeInfoCard extends StatelessWidget {
         children: [
           Stack(
             children: [
-              Container(
-                width: 56, height: 56,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(colors: [
-                    Pallete.primaryColor, Pallete.primaryLightColor,
-                  ]),
+              Hero(
+                tag: 'profile_${emp['profilePicture']}',
+                child: GestureDetector(
+                  onTap: () => ImagePreview.show(
+                    context,
+                    url:   emp['profilePicture']!,
+                    label: emp['fullName'] ?? '',
+                    heroTag: 'profile_${emp['profilePicture']}',
+                  ),
+                  child: Container(
+                    width: 56, height: 56,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(colors: [
+                        Pallete.primaryColor, Pallete.primaryLightColor,
+                      ]),
+                    ),
+                    child: emp['profilePicture'] != null
+                        ? ClipOval(child: Image.network(emp['profilePicture']!, fit: BoxFit.cover))
+                        : AvatarInitials(fullName: emp['fullName']),
+                  ),
                 ),
-                child: emp['profilePicture'] != null
-                    ? ClipOval(child: Image.network(emp['profilePicture']!, fit: BoxFit.cover))
-                    : AvatarInitials(fullName: emp['fullName']),
               ),
               Positioned(
                 bottom: 0, right: 0,

@@ -1,3 +1,4 @@
+import 'package:field_work/config/data/local/app_data.dart';
 import 'package:field_work/features/attendance/view/screen/attendance_screen.dart';
 import 'package:field_work/features/attendance/view/screen/manager_attendance_screen.dart';
 import 'package:field_work/features/home/controller/home_controller.dart';
@@ -36,6 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final userData = _controller.userData;
+    final color  = (userData?.isOnline ?? false) ? Pallete.kGreen : Colors.redAccent;
     final textTheme = Theme.of(context).textTheme;
 
     return GestureDetector(
@@ -64,64 +66,81 @@ class _HomeScreenState extends State<HomeScreen> {
                   // Profile Avatar with Glow
                   GestureDetector(
                     onTap: _controller.onProfileTapped,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Pallete.primaryColor.withValues(alpha: 0.4),
-                            blurRadius: 6,
-                            spreadRadius: 2,
-                          ),
-                        ],
-                      ),
-                      child: Hero(
-                        tag: 'avatar',
-                        child: Container(
-                          width: 48,
-                          height: 48,
+                    child: Stack(
+                      children: [
+                        Container(
                           decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                Pallete.primaryColor,
-                                Pallete.primaryLightColor,
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
                             shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Pallete.primaryColor.withValues(alpha: 0.5),
-                              width: 2.5,
-                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Pallete.primaryColor.withValues(alpha: 0.4),
+                                blurRadius: 6,
+                                spreadRadius: 2,
+                              ),
+                            ],
                           ),
-                          child: userData.profilePicture != null
-                              ? ClipOval(
-                                child: Image.network(
-                                  userData.profilePicture!,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return AvatarInitials(
-                                      fullName: userData.fullName,
-                                      textStyle: Theme.of(context).textTheme.
-                                      titleSmall!.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
-                                    );
-                                  },
+                          child: Hero(
+                            tag: 'avatar',
+                            child: Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Pallete.primaryColor,
+                                    Pallete.primaryLightColor,
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
                                 ),
-                              )
-                              :  AvatarInitials(
-                            fullName: userData.fullName,
-                            textStyle: Theme.of(context).textTheme.
-                            titleSmall!.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Pallete.primaryColor.withValues(alpha: 0.5),
+                                  width: 2.5,
+                                ),
+                              ),
+                              child: userData.profilePicture != null
+                                  ? ClipOval(
+                                    child: Image.network(
+                                      userData.profilePicture!,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return AvatarInitials(
+                                          fullName: userData.fullName,
+                                          textStyle: Theme.of(context).textTheme.
+                                          titleSmall!.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  )
+                                  :  AvatarInitials(
+                                fullName: userData.fullName,
+                                textStyle: Theme.of(context).textTheme.
+                                titleSmall!.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                      ),
+                        if (userData.role != 'manager')
+                          Positioned(
+                            bottom: 0, right: 0,
+                            child: Container(
+                              width: 12, height: 12,
+                              decoration: BoxDecoration(
+                                color:  color,
+                                shape:  BoxShape.circle,
+                                border: Border.all(color: Theme.of(context).colorScheme.surface, width: 2),
+                                boxShadow: [BoxShadow(color: color.withValues(alpha: 0.5), blurRadius: 4)],
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
 
@@ -275,7 +294,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         MaterialPageRoute(
                           builder: (_) => const AttendanceScreen(),
                         ),
-                      );
+                      ).then((_) {
+                        _controller.userData = AppData().getUserData();
+                      });
                     }
                   },
                 ),

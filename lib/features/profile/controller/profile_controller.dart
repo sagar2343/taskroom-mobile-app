@@ -1,3 +1,4 @@
+import 'package:field_work/config/data/local/app_data.dart';
 import 'package:field_work/core/utils/helpers.dart';
 import 'package:field_work/features/profile/data/profile_datasource.dart';
 import 'package:field_work/features/profile/screen/edit_profile_screen.dart';
@@ -33,6 +34,9 @@ class ProfileController {
 
       if (response.success ?? false) {
         userData = response.data?.user;
+        if (userData != null) {
+          AppData().setUserData(userData!);
+        }
       } else {
         Helpers.showSnackBar(
           context,

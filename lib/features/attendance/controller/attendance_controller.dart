@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:field_work/config/data/local/app_data.dart';
 import 'package:field_work/core/utils/helpers.dart';
 import 'package:field_work/features/attendance/data/attendance_datasource.dart';
 import 'package:field_work/features/attendance/model/attendance_model.dart';
@@ -75,6 +76,9 @@ class AttendanceController {
     if (res?['success'] == true) {
       todayData = AttendanceTodayData.fromJson(
           res!['data'] as Map<String, dynamic>);
+      if (todayData?.isOnline != null) {
+        AppData().updateOnlineStatus(todayData!.isOnline);
+      }
       // Reset live timer
       liveSessionDuration = Duration.zero;
       final open = todayData?.attendance?.openSession;

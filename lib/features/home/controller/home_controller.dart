@@ -136,6 +136,7 @@ class HomeController {
   }
 
   Future<void> onRefresh() async {
+    userData = AppData().getUserData();
     await getMyRooms(refresh: true);
   }
 
@@ -280,7 +281,10 @@ class HomeController {
   void onProfileTapped() {
     if (userData == null) return;
     Navigator.push(context, MaterialPageRoute(builder: (context)=>
-    const ProfileScreen()));
+    const ProfileScreen())).then((_) {
+      userData = AppData().getUserData();
+      reloadData();
+    });
   }
 
   void dispose() {

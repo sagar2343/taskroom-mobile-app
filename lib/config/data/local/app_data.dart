@@ -28,6 +28,13 @@ class AppData {
     return _userData;
   }
 
+  void updateOnlineStatus(bool isOnline) {
+    if (_userData == null) return;
+
+    _userData = _userData!.copyWith(isOnline: isOnline);
+    _saveThisInstance();
+  }
+
   void setDarkTheme(bool isDark) {
     _isDark = isDark;
     _saveThisInstance();

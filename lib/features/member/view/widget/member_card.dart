@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../config/theme/app_pallete.dart';
 import '../../../auth/model/user_model.dart';
+import '../../../widgets/image_preview.dart';
 
 class MemberCard extends StatelessWidget {
   final String memberName;
@@ -89,21 +90,32 @@ class MemberCard extends StatelessWidget {
                   ],
                 ),
                 child: member.profilePicture != null
-                    ? ClipOval(
-                      child: Image.network(
-                        member.profilePicture!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Center(
-                            child: Text(
-                              memberName,
-                              style: textTheme.titleMedium!.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                          );
-                        },
+                    ? Hero(
+                      tag: 'profile_${member.id}',
+                      child: GestureDetector(
+                        onTap: () => ImagePreview.show(
+                          context,
+                          url:   member.profilePicture!,
+                          label: member.fullName ?? '',
+                          heroTag: 'profile_${member.id}',
+                        ),
+                        child: ClipOval(
+                          child: Image.network(
+                            member.profilePicture!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Center(
+                                child: Text(
+                                  memberName,
+                                  style: textTheme.titleMedium!.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
                       ),
                     )
                     : Center(
