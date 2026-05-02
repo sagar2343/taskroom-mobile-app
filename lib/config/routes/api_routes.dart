@@ -50,10 +50,17 @@ const APIRouteTaskLiveLocation  = '/api/tasks/live-location';   // POST  { taskI
 const APIRouteTaskLocationTrace = '/api/tasks/location-trace';  // POST  { taskId, stepId? }
 
 // ── Attendance ────────────────────────────────────────────────────────
+const APIRouteAttendanceGoOnline   = '/api/attendance/go-online';
+const APIRouteAttendanceGoOffline  = '/api/attendance/go-offline';
+const APIRouteAttendanceToday      = '/api/attendance/today';
+const APIRouteAttendanceHistory    = '/api/attendance/history';
+const APIRouteAttendanceOrgToday   = '/api/attendance/org-today';   // Manager
+// Manager: /api/attendance/employee/:id  (built dynamically)
+const APIRouteAttendaceOfEmployee    = '/api/attendance/employee/';
+
+// ── Legacy attendance routes (kept for backward compat with task.js) ──
 const APIRouteAttendancePunchIn  = '/api/tasks/attendance/punch-in';
 const APIRouteAttendancePunchOut = '/api/tasks/attendance/punch-out';
-const APIRouteAttendanceToday    = '/api/tasks/attendance/today';
-const APIRouteAttendanceHistory  = '/api/tasks/attendance/history';
 
 const APIRouteTaskActiveStatus   = '/api/tasks/active-status';
 

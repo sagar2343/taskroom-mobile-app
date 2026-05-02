@@ -1,3 +1,5 @@
+import 'package:field_work/features/attendance/view/screen/attendance_screen.dart';
+import 'package:field_work/features/attendance/view/screen/manager_attendance_screen.dart';
 import 'package:field_work/features/home/controller/home_controller.dart';
 import 'package:field_work/features/widgets/animated_screen_wrapper.dart';
 import 'package:field_work/features/widgets/avatar_initials.dart';
@@ -253,59 +255,48 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 IconButton(
                   icon: Icon(
-                    Icons.notifications_outlined,
+                    userData?.role == 'manager'
+                        ? Icons.group
+                        : Icons.access_time,
                     size: 26,
                     color: Theme.of(context).colorScheme.onSurface,
                   ),
                   onPressed: () {
-                    // TODO: Navigate to notifications
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Row(
-                          children: [
-                            Icon(Icons.info_outline, color: Colors.white),
-                            const SizedBox(width: 12),
-                            Text('Notifications coming soon!'),
-                          ],
+                    if (userData?.role == 'manager') {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const ManagerAttendanceScreen(),
                         ),
-                        backgroundColor: Pallete.infoColor,
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                      );
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const AttendanceScreen(),
                         ),
-                      ),
-                    );
+                      );
+                    }
                   },
                 ),
-                // Notification Badge
-                Positioned(
-                  right: 8,
-                  top: 8,
-                  child: Container(
-                    width: 10,
-                    height: 10,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Pallete.errorColor,
-                          Pallete.redAccent,
-                        ],
+
+                // Optional badge (only if needed)
+                if (userData?.role == 'manager')
+                  Positioned(
+                    right: 8,
+                    top: 8,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
                       ),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Theme.of(context).scaffoldBackgroundColor,
-                        width: 2,
+                      child: const Text(
+                        '!',
+                        style: TextStyle(color: Colors.white, fontSize: 8),
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Pallete.errorColor.withValues(alpha: 0.5),
-                          blurRadius: 4,
-                          spreadRadius: 1,
-                        ),
-                      ],
                     ),
                   ),
-                ),
               ],
             ),
 

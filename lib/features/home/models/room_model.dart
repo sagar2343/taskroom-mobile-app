@@ -189,6 +189,9 @@ class RoomMemberUser {
   final String? fullName;
   final String? profilePicture;
   final bool? isOnline;
+  final int? totalMinutes;
+  final int? sessionsCount;
+  final DateTime? lastActive;
 
   RoomMemberUser({
     this.id,
@@ -197,6 +200,9 @@ class RoomMemberUser {
     this.fullName,
     this.profilePicture,
     this.isOnline,
+    this.lastActive,
+    this.sessionsCount,
+    this.totalMinutes,
   });
 
   factory RoomMemberUser.fromJson(Map<String, dynamic> json) {
@@ -207,6 +213,11 @@ class RoomMemberUser {
       fullName: json['fullName'],
       profilePicture: json['profilePicture'],
       isOnline: json['isOnline'],
+      totalMinutes:  (json['totalMinutes'] as num?)?.toInt(),
+      sessionsCount: (json['sessionsCount'] as num?)?.toInt(),
+      lastActive:    json['lastActive'] != null
+          ? DateTime.tryParse(json['lastActive'].toString())?.toLocal()
+          : null,
     );
   }
 }

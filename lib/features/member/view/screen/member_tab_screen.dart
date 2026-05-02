@@ -241,6 +241,7 @@ class _MemberCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final user = member.user;
+    final color  = user.isOnline ? Pallete.kGreen : Colors.redAccent;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -269,52 +270,69 @@ class _MemberCard extends StatelessWidget {
                 label: user!.fullName,
                 heroTag: 'member_${user.id}',
               ),
-              child: Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Pallete.primaryColor,
-                      Pallete.primaryLightColor,
-                    ],
-                  ),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Pallete.primaryColor.withValues(alpha: 0.3),
-                    width: 2,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Pallete.primaryColor.withValues(alpha: 0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: user?.profilePicture != null
-                    ? ClipOval(
-                      child: Image.network(
-                        user!.profilePicture!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return AvatarInitials(
-                            fullName: user.fullName ?? 'U',
-                            textStyle: textTheme.titleSmall!.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          );
-                        },
+              child: Stack(
+                children: [
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Pallete.primaryColor,
+                          Pallete.primaryLightColor,
+                        ],
                       ),
-                    )
-                    : AvatarInitials(
-                      fullName: user?.fullName ?? 'U',
-                      textStyle: textTheme.titleSmall!.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Pallete.primaryColor.withValues(alpha: 0.3),
+                        width: 2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Pallete.primaryColor.withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: user?.profilePicture != null
+                        ? ClipOval(
+                          child: Image.network(
+                            user!.profilePicture!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return AvatarInitials(
+                                fullName: user.fullName ?? 'U',
+                                textStyle: textTheme.titleSmall!.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              );
+                            },
+                          ),
+                        )
+                        : AvatarInitials(
+                          fullName: user?.fullName ?? 'U',
+                          textStyle: textTheme.titleSmall!.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                  ),
+                  Positioned(
+                    bottom: 0, right: 0,
+                    child: Container(
+                      width: 16,
+                      height: 16,
+                      decoration: BoxDecoration(
+                        color:  color,
+                        shape:  BoxShape.circle,
+                        border: Border.all(color: Theme.of(context).colorScheme.surface, width: 2),
+                        boxShadow: [BoxShadow(color: color.withValues(alpha: 0.5), blurRadius: 4)],
                       ),
                     ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -442,6 +460,7 @@ class _MemberCard extends StatelessWidget {
   Widget _buildStatusBadge(BuildContext context) {
     final status = controller.getStatusDisplay(member.status);
     final isActive = status.toLowerCase() == 'active';
+
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

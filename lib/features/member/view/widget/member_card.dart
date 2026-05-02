@@ -24,6 +24,7 @@ class MemberCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final isOnline = member.isOnline ?? false;
+    final color  = isOnline ? Pallete.kGreen : Colors.redAccent;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -117,18 +118,15 @@ class MemberCard extends StatelessWidget {
               ),
               // Online indicator
               Positioned(
-                bottom: 0,
-                right: 0,
+                bottom: 0, right: 0,
                 child: Container(
                   width: 16,
                   height: 16,
                   decoration: BoxDecoration(
-                    color: isOnline ? Pallete.successColor : Colors.grey,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Theme.of(context).scaffoldBackgroundColor,
-                      width: 2,
-                    ),
+                    color:  color,
+                    shape:  BoxShape.circle,
+                    border: Border.all(color: Theme.of(context).colorScheme.surface, width: 2),
+                    boxShadow: [BoxShadow(color: color.withValues(alpha: 0.5), blurRadius: 4)],
                   ),
                 ),
               ),
