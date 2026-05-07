@@ -15,6 +15,17 @@ class OrganizationModel {
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
+  // ── NEW plan / billing fields ──────────────────────────────────────
+  /// The stored plan: 'starter' | 'pro' | 'business' | 'enterprise'
+  final String? plan;
+  /// The effective plan — trial counts as 'pro' until trialEndsAt
+  final String? effectivePlan;
+  final DateTime? planExpiresAt;
+  final DateTime? trialEndsAt;
+  final bool? isTrialActive;
+  final String? billingEmail;
+  final int? billableSeats;
+
   OrganizationModel({
     this.id,
     this.name,
@@ -31,6 +42,14 @@ class OrganizationModel {
     this.suspensionReason,
     this.createdAt,
     this.updatedAt,
+    // new
+    this.plan,
+    this.effectivePlan,
+    this.planExpiresAt,
+    this.trialEndsAt,
+    this.isTrialActive,
+    this.billingEmail,
+    this.billableSeats,
   });
 
   factory OrganizationModel.fromJson(Map<String, dynamic> json) {
@@ -60,8 +79,21 @@ class OrganizationModel {
       updatedAt: json['updatedAt'] != null
           ? DateTime.tryParse(json['updatedAt'])?.toLocal()
           : null,
+      // new
+      plan: json['plan'],
+      effectivePlan: json['effectivePlan'],
+      planExpiresAt: json['planExpiresAt'] != null
+          ? DateTime.tryParse(json['planExpiresAt'])?.toLocal()
+          : null,
+      trialEndsAt: json['trialEndsAt'] != null
+          ? DateTime.tryParse(json['trialEndsAt'])?.toLocal()
+          : null,
+      isTrialActive: json['isTrialActive'],
+      billingEmail: json['billingEmail'],
+      billableSeats: json['billableSeats'],
     );
   }
+
   Map<String, dynamic> toJson() {
     return {
       '_id': id,
@@ -79,9 +111,33 @@ class OrganizationModel {
       'suspensionReason': suspensionReason,
       'createdAt': createdAt?.toUtc().toIso8601String(),
       'updatedAt': updatedAt?.toUtc().toIso8601String(),
+      'plan': plan,
+      'effectivePlan': effectivePlan,
+      'planExpiresAt': planExpiresAt?.toUtc().toIso8601String(),
+      'trialEndsAt': trialEndsAt?.toUtc().toIso8601String(),
+      'isTrialActive': isTrialActive,
+      'billingEmail': billingEmail,
+      'billableSeats': billableSeats,
     };
   }
+
+  /// Convenience: true while in trial period
+  bool get isInTrial => (isTrialActive == true) &&
+      trialEndsAt != null &&
+      DateTime.now().isBefore(trialEndsAt!);
+
+  /// Convenience: trial days left (0 if expired / not in trial)
+  int get trialDaysLeft {
+    if (!isInTrial || trialEndsAt == null) return 0;
+    return trialEndsAt!.difference(DateTime.now()).inDays.clamp(0, 99);
+  }
+
+  /// True if on paid Pro, Business, or Enterprise
+  bool get isPaid =>
+      plan != null && plan != 'starter' && isTrialActive != true;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 class OrganizationAddress {
   final String? street;
@@ -91,32 +147,21 @@ class OrganizationAddress {
   final String? country;
 
   OrganizationAddress({
-    this.street,
-    this.city,
-    this.state,
-    this.pincode,
-    this.country,
+    this.street, this.city, this.state, this.pincode, this.country,
   });
 
   factory OrganizationAddress.fromJson(Map<String, dynamic> json) {
     return OrganizationAddress(
-      street: json['street'],
-      city: json['city'],
-      state: json['state'],
-      pincode: json['pincode'],
+      street: json['street'], city: json['city'],
+      state: json['state'],   pincode: json['pincode'],
       country: json['country'],
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'street': street,
-      'city': city,
-      'state': state,
-      'pincode': pincode,
-      'country': country,
-    };
-  }
+  Map<String, dynamic> toJson() => {
+    'street': street, 'city': city, 'state': state,
+    'pincode': pincode, 'country': country,
+  };
 }
 
 class OrganizationSettings {
@@ -125,9 +170,7 @@ class OrganizationSettings {
   final bool? enableLocationTracking;
 
   OrganizationSettings({
-    this.maxEmployees,
-    this.maxRooms,
-    this.enableLocationTracking,
+    this.maxEmployees, this.maxRooms, this.enableLocationTracking,
   });
 
   factory OrganizationSettings.fromJson(Map<String, dynamic> json) {
@@ -138,14 +181,11 @@ class OrganizationSettings {
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'maxEmployees': maxEmployees,
-      'maxRooms': maxRooms,
-      'enableLocationTracking': enableLocationTracking,
-    };
-  }
-
+  Map<String, dynamic> toJson() => {
+    'maxEmployees': maxEmployees,
+    'maxRooms': maxRooms,
+    'enableLocationTracking': enableLocationTracking,
+  };
 }
 
 class OrganizationStats {
@@ -156,11 +196,8 @@ class OrganizationStats {
   final int? totalTasksCompleted;
 
   OrganizationStats({
-    this.totalEmployees,
-    this.totalManagers,
-    this.totalRooms,
-    this.totalTasks,
-    this.totalTasksCompleted,
+    this.totalEmployees, this.totalManagers, this.totalRooms,
+    this.totalTasks, this.totalTasksCompleted,
   });
 
   factory OrganizationStats.fromJson(Map<String, dynamic> json) {
@@ -173,14 +210,11 @@ class OrganizationStats {
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'totalEmployees': totalEmployees,
-      'totalManagers': totalManagers,
-      'totalRooms': totalRooms,
-      'totalTasks': totalTasks,
-      'totalTasksCompleted': totalTasksCompleted,
-    };
-  }
-
+  Map<String, dynamic> toJson() => {
+    'totalEmployees': totalEmployees,
+    'totalManagers': totalManagers,
+    'totalRooms': totalRooms,
+    'totalTasks': totalTasks,
+    'totalTasksCompleted': totalTasksCompleted,
+  };
 }

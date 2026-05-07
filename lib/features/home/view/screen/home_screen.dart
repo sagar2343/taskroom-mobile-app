@@ -7,6 +7,10 @@ import 'package:field_work/features/widgets/avatar_initials.dart';
 import 'package:flutter/material.dart';
 import '../../../../config/theme/app_pallete.dart';
 import '../../../../main.dart';
+import '../../../analytics/view/screen/analytics_screen.dart';
+import '../../../analytics/view/widgets/export_sheet.dart';
+import '../../../billing/view/screen/billing_screen.dart';
+import '../../../billing/view/widgets/trial_banner.dart';
 import '../widget/room_card.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -269,7 +273,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           actions: [
-            // Notification Icon with Badge
+            // Team Icon with Badge
             Stack(
               children: [
                 IconButton(
@@ -320,6 +324,35 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
               ],
             ),
+            // ── Analytics — manager only ──────────────────────────────────
+            if (userData?.role == 'manager')
+              IconButton(
+                icon: Icon(
+                  Icons.analytics_outlined,
+                  size: 24,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                tooltip: 'Analytics',
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AnalyticsScreen()),
+                ),
+              ),
+
+            // ── Export — manager only ─────────────────────────────────────
+            if (userData?.role == 'manager')
+              IconButton(
+                icon: Icon(
+                  Icons.download_rounded,
+                  size: 24,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                tooltip: 'Export',
+                onPressed: () => ExportSheet.show(
+                  context,
+                  type: ExportType.teamSummary,
+                ),
+              ),
 
             // Three Dot Menu
             PopupMenuButton<String>(
@@ -399,6 +432,107 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 const PopupMenuDivider(),
 
+                // ── Analytics — manager only ──────────────────────────────────
+                if (userData?.role == 'manager')...[
+                  PopupMenuItem(
+                    value: 'analytics',
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Pallete.primaryColor.withValues(alpha: 0.15),
+                                Pallete.primaryColor.withValues(alpha: 0.05),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(Icons.analytics_outlined,
+                              size: 20, color: Pallete.primaryColor),
+                        ),
+                        const SizedBox(width: 14),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ValueListenableBuilder<ThemeMode>(
+                              valueListenable: themeNotifier,
+                              builder: (ctx, _, __) => Text(
+                                'Analytics',
+                                style: Theme.of(ctx).textTheme.bodyMedium!.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            ValueListenableBuilder<ThemeMode>(
+                              valueListenable: themeNotifier,
+                              builder: (ctx, _, __) => Text(
+                                'Team performance & scores',
+                                style: Theme.of(ctx).textTheme.bodySmall!.copyWith(
+                                  color: Theme.of(ctx).colorScheme.onSurface.withValues(alpha: 0.65),
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuDivider(),
+                ],
+
+                // ── Billing / Plan — manager only ─────────────────────────────
+                if (userData?.role == 'manager')...[
+                  PopupMenuItem(
+                    value: 'billing',
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.green.withValues(alpha: 0.15),
+                                Colors.green.withValues(alpha: 0.05),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(Icons.credit_card_outlined,
+                              size: 20, color: Colors.green.shade400),
+                        ),
+                        const SizedBox(width: 14),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ValueListenableBuilder<ThemeMode>(
+                              valueListenable: themeNotifier,
+                              builder: (ctx, _, __) => Text(
+                                'Plans & Billing',
+                                style: Theme.of(ctx).textTheme.bodyMedium!.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            ValueListenableBuilder<ThemeMode>(
+                              valueListenable: themeNotifier,
+                              builder: (ctx, _, __) => Text(
+                                'Manage your subscription',
+                                style: Theme.of(ctx).textTheme.bodySmall!.copyWith(
+                                  color: Theme.of(ctx).colorScheme.onSurface.withValues(alpha: 0.65),
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuDivider(),
+                ],
                 // Theme Switch
                 PopupMenuItem<String>(
                   enabled: false,  // keeps popup open on tap
@@ -552,6 +686,18 @@ class _HomeScreenState extends State<HomeScreen> {
                   case 'profile':
                     _controller.onProfileTapped();
                     break;
+                  case 'analytics':                    // ← ADD
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const AnalyticsScreen()),
+                    );
+                    break;
+                  case 'billing':                      // ← ADD
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const BillingScreen()),
+                    );
+                    break;
                   case 'logout':
                     _controller.onLogoutTapped();
                     break;
@@ -571,6 +717,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  if (_controller.userData?.role == 'manager')
+                    const TrialBanner(),
                   _buildSearchBar(),
                   _controller.isLoading
                       ? const Expanded(

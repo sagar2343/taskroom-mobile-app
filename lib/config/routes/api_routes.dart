@@ -20,54 +20,72 @@ const APIRouteCheckOrgAvailability = '/api/organization/check';
 const APIRouteGetAllOrgMembers     = '/api/organization/members';
 
 // ── Tasks ─────────────────────────────────────────────────────────────
-const APIRouteTasks      = '/api/tasks';           // GET  (manager list)
-const APIRouteGetMyTasks = '/api/tasks/my/tasks';  // GET  (employee list)
+const APIRouteTasks      = '/api/tasks';
+const APIRouteGetMyTasks = '/api/tasks/my/tasks';
 
-// taskId / stepId are always sent in the request body, never in the URL
+const APIRouteTaskDetail        = '/api/tasks/detail';
+const APIRouteTaskEdit          = '/api/tasks/edit';
+const APIRouteTaskCancel        = '/api/tasks/cancel';
 
-// Manager
-const APIRouteTaskDetail        = '/api/tasks/detail';          // POST  { taskId }
-const APIRouteTaskEdit          = '/api/tasks/edit';            // PUT   { taskId, ...fields }
-const APIRouteTaskCancel        = '/api/tasks/cancel';          // PATCH { taskId, reason? }
+const APIRouteTaskStepsAdd    = '/api/tasks/steps/add';
+const APIRouteTaskStepsEdit   = '/api/tasks/steps/edit';
+const APIRouteTaskStepsRemove = '/api/tasks/steps/remove';
 
-// Steps (manager)
-const APIRouteTaskStepsAdd    = '/api/tasks/steps/add';     // POST   { taskId, ...step }
-const APIRouteTaskStepsEdit   = '/api/tasks/steps/edit';    // PUT    { taskId, stepId, ...fields }
-const APIRouteTaskStepsRemove = '/api/tasks/steps/remove';  // DELETE { taskId, stepId }
+const APIRouteTaskStart        = '/api/tasks/start';
+const APIRouteTaskStepsStart   = '/api/tasks/steps/start';
+const APIRouteTaskStepsReached = '/api/tasks/steps/reached';
+const APIRouteTaskStepsComplete= '/api/tasks/steps/complete';
 
-// Employee actions
-const APIRouteTaskStart        = '/api/tasks/start';           // POST { taskId, coordinates? }
-const APIRouteTaskStepsStart   = '/api/tasks/steps/start';     // POST { taskId, stepId }
-const APIRouteTaskStepsReached = '/api/tasks/steps/reached';   // POST { taskId, stepId, coordinates }
-const APIRouteTaskStepsComplete= '/api/tasks/steps/complete';  // POST { taskId, stepId, ...fields }
-
-// Location
-const APIRouteTaskLocationPing = '/api/tasks/location/ping';   // POST { taskId, stepId, coordinates, ... }
-const APIRouteTaskDashboard = '/api/tasks/dashboard'; // Manager: dashboard summary
-// Manager: live employee location for an active task
-const APIRouteTaskLiveLocation  = '/api/tasks/live-location';   // POST  { taskId }
-// Manager: full GPS trace for a task (all steps or a specific step)
-const APIRouteTaskLocationTrace = '/api/tasks/location-trace';  // POST  { taskId, stepId? }
+const APIRouteTaskLocationPing  = '/api/tasks/location/ping';
+const APIRouteTaskDashboard     = '/api/tasks/dashboard';
+const APIRouteTaskLiveLocation  = '/api/tasks/live-location';
+const APIRouteTaskLocationTrace = '/api/tasks/location-trace';
 
 // ── Attendance ────────────────────────────────────────────────────────
 const APIRouteAttendanceGoOnline   = '/api/attendance/go-online';
 const APIRouteAttendanceGoOffline  = '/api/attendance/go-offline';
 const APIRouteAttendanceToday      = '/api/attendance/today';
 const APIRouteAttendanceHistory    = '/api/attendance/history';
-const APIRouteAttendanceOrgToday   = '/api/attendance/org-today';   // Manager
-// Manager: /api/attendance/employee/:id  (built dynamically)
-const APIRouteAttendaceOfEmployee    = '/api/attendance/employee/';
+const APIRouteAttendanceOrgToday   = '/api/attendance/org-today';
+const APIRouteAttendaceOfEmployee  = '/api/attendance/employee/';
 
-// ── Legacy attendance routes (kept for backward compat with task.js) ──
 const APIRouteAttendancePunchIn  = '/api/tasks/attendance/punch-in';
 const APIRouteAttendancePunchOut = '/api/tasks/attendance/punch-out';
-
 const APIRouteTaskActiveStatus   = '/api/tasks/active-status';
 
-// fcm token
-const APIRouteFcmUrl = '/api/fcm/fcm-token';
-
-// Images upload
+// ── FCM / Upload ──────────────────────────────────────────────────────
+const APIRouteFcmUrl               = '/api/fcm/fcm-token';
 const APIRouteUploadProfilePicture = '/api/upload/profile-picture';
 const APIRouteUploadStepPhoto      = '/api/upload/step-photo';
 const APIRouteUploadRoomImage      = '/api/upload/room-image';
+
+// ── NEW: Billing ──────────────────────────────────────────────────────
+/// Public — returns plan catalogue with pricing
+const APIRouteBillingPlans        = '/api/billing/plans';
+/// Manager — current plan, trial days left, limits
+const APIRouteBillingStatus       = '/api/billing/status';
+/// Manager — create Razorpay order before checkout
+const APIRouteBillingCreateOrder  = '/api/billing/create-order';
+/// Manager — verify Razorpay signature after checkout
+const APIRouteBillingVerifyPayment = '/api/billing/verify-payment';
+/// Manager — payment history
+const APIRouteBillingHistory      = '/api/billing/history';
+
+// ── NEW: Export (Pro+ only) ───────────────────────────────────────────
+/// Query params: from=, to=, employeeId= (all optional)
+const APIRouteExportAttendancePdf   = '/api/export/attendance/pdf';
+const APIRouteExportAttendanceExcel = '/api/export/attendance/excel';
+const APIRouteExportTasksPdf        = '/api/export/tasks/pdf';
+const APIRouteExportTasksExcel      = '/api/export/tasks/excel';
+/// Org-wide productivity summary PDF
+const APIRouteExportTeamSummaryPdf  = '/api/export/team-summary/pdf';
+
+// ── NEW: Analytics (Pro+ for productivity scores) ────────────────────
+/// Today's org snapshot: online count, tasks, overdue
+const APIRouteAnalyticsOverview     = '/api/analytics/overview';
+/// Weekly productivity scores per employee (Pro+)
+const APIRouteAnalyticsProductivity = '/api/analytics/productivity';
+/// 30-day single employee detail card
+const APIRouteAnalyticsEmployee     = '/api/analytics/employee/'; // append :id
+/// Daily trend data — ?days=7|14|30
+const APIRouteAnalyticsTrends       = '/api/analytics/trends';

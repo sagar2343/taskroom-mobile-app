@@ -8,6 +8,7 @@ import 'package:field_work/features/widgets/animated_screen_wrapper.dart';
 import 'package:field_work/features/widgets/avatar_initials.dart';
 import 'package:flutter/material.dart';
 
+import '../../../analytics/view/widgets/export_sheet.dart';
 import '../../../widgets/image_preview.dart';
 
 class ManagerAttendanceScreen extends StatefulWidget {
@@ -61,6 +62,14 @@ class _ManagerAttendanceScreenState extends State<ManagerAttendanceScreen> {
             icon: const Icon(Icons.refresh),
             onPressed: _ctrl.loadOrgToday,
             tooltip: 'Refresh',
+          ),
+          IconButton(
+            icon: const Icon(Icons.download_rounded),
+            onPressed: () => ExportSheet.show(
+              context,
+              type: ExportType.attendance,
+            ),
+            tooltip: 'Export Attendance',
           ),
           const SizedBox(width: 4),
         ],
