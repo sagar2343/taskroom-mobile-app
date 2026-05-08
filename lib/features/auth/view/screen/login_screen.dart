@@ -345,7 +345,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  'Visit taskroom.com',
+                                  'Visit taskroom.in',
                                   style: GoogleFonts.inter(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,

@@ -3,10 +3,9 @@ import 'package:field_work/core/utils/helpers.dart';
 import 'package:field_work/features/auth/data/auth_data.dart';
 import 'package:field_work/features/home/view/screen/home_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../../config/data/local/app_data.dart';
-import '../../../config/theme/app_pallete.dart';
 import '../../../services/fcm_service.dart';
+import '../../widgets/webview_screen.dart';
 
 class LoginController {
   final BuildContext context;
@@ -21,7 +20,6 @@ class LoginController {
   bool isLoading = false;
 
   LoginController({required this.context, required this.reloadData});
-
 
   Future<void> handleLogin() async {
     if (!formKey.currentState!.validate()) return;
@@ -96,18 +94,18 @@ class LoginController {
     }
   }
 
-  Future<void> launchURL() async {
-    final uri = Uri.parse(HttpConstants.getBaseURL);
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Could not launch website'),
-            backgroundColor: Pallete.errorColor,
-          ),
-        );
-      }
-    }
+  /// Opens the TaskRoom website in an in-app WebView instead of the system browser.
+  void launchURL() {
+    final url = HttpConstants.getBaseURL;
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => InAppWebViewScreen(
+          url: url,
+          title: 'TaskRoom',
+        ),
+        fullscreenDialog: true, // slides up from bottom — feels more natural
+      ),
+    );
   }
 
   void dispose() {
