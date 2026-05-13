@@ -1,64 +1,101 @@
-// features/billing/model/billing_model.dart
-// Maps to /api/billing/* responses
+import 'package:intl/intl.dart';
 
-// ─── Plan Info (from GET /api/billing/plans) ─────────────────────────────────
+// ─── Plan Info ────────────────────────────────────────────────────────────────
 class PlanInfo {
-  final String id;           // 'starter' | 'pro' | 'business'
+  final String id;          // = slug ('starter','growth','business','enterprise')
   final String label;
-  final int? priceMonthly;   // null for free
-  final int perSeatPrice;
-  final int maxEmployees;
-  final int maxRooms;
-  final int historyDays;
-  final bool gpsTrace;
-  final bool exportReports;
-  final bool productivityScores;
+  final int    monthlyPrice;
+  final int    yearlyPrice;  // full-year lump sum
+  final int    maxEmployees; // -1 = unlimited
+  final int    maxManagers;  // -1 = unlimited
+  final int    maxRooms;     // -1 = unlimited
+  final int    historyDays;  // -1 = unlimited
+  final bool   isContactSales;
+  final bool   isActive;
+  final Map<String, bool> features;
+  final List<String>      featureLabels;
 
   const PlanInfo({
     required this.id,
     required this.label,
-    this.priceMonthly,
-    required this.perSeatPrice,
+    required this.monthlyPrice,
+    required this.yearlyPrice,
     required this.maxEmployees,
+    required this.maxManagers,
     required this.maxRooms,
     required this.historyDays,
-    required this.gpsTrace,
-    required this.exportReports,
-    required this.productivityScores,
+    required this.isContactSales,
+    required this.isActive,
+    required this.features,
+    required this.featureLabels,
   });
 
+  bool get isFree => monthlyPrice == 0 && !isContactSales;
+
+  /// Per-month equivalent when billed annually (for display)
+  int get monthlyEquivalentAnnual =>
+      yearlyPrice > 0 ? (yearlyPrice / 12).round() : 0;
+
   factory PlanInfo.fromJson(Map<String, dynamic> j) => PlanInfo(
-    id: j['id'],
-    label: j['label'],
-    priceMonthly: j['priceMonthly'],
-    perSeatPrice: j['perSeatPrice'] ?? 0,
-    maxEmployees: j['maxEmployees'] ?? 20,
-    maxRooms: j['maxRooms'] ?? 5,
-    historyDays: j['historyDays'] ?? 7,
-    gpsTrace: j['gpsTrace'] ?? false,
-    exportReports: j['exportReports'] ?? false,
-    productivityScores: j['productivityScores'] ?? false,
+    id:             j['slug'] as String,
+    label:          j['label'] as String,
+    monthlyPrice:   (j['monthlyPrice'] as num).toInt(),
+    yearlyPrice:    (j['yearlyPrice'] as num).toInt(),
+    maxEmployees:   (j['maxEmployees'] as num).toInt(),
+    maxManagers:    (j['maxManagers'] as num).toInt(),
+    maxRooms:       (j['maxRooms'] as num).toInt(),
+    historyDays:    (j['historyDays'] as num).toInt(),
+    isContactSales: j['isContactSales'] as bool? ?? false,
+    isActive:       j['isActive'] as bool? ?? true,
+    features:       Map<String, bool>.from(
+      (j['features'] as Map<String, dynamic>?)
+          ?.map((k, v) => MapEntry(k, v as bool)) ?? {},
+    ),
+    featureLabels: List<String>.from(j['featureLabels'] ?? []),
   );
-
-  /// Monthly bill = base + (seats × perSeat)
-  int monthlyTotal(int seats) =>
-      (priceMonthly ?? 0) + seats * perSeatPrice;
-
-  bool get isFree => priceMonthly == null || priceMonthly == 0;
 }
 
-// ─── Billing Status (from GET /api/billing/status) ────────────────────────────
+// ─── Plan Limits (embedded in BillingStatus) ─────────────────────────────────
+class PlanLimits {
+  final int maxEmployees;
+  final int maxManagers;
+  final int maxRooms;
+  final int historyDays;
+  final Map<String, bool> features;
+
+  const PlanLimits({
+    required this.maxEmployees,
+    required this.maxManagers,
+    required this.maxRooms,
+    required this.historyDays,
+    required this.features,
+  });
+
+  bool hasFeature(String key) => features[key] ?? false;
+
+  factory PlanLimits.fromJson(Map<String, dynamic> j) => PlanLimits(
+    maxEmployees: (j['maxEmployees'] as num?)?.toInt() ?? 5,
+    maxManagers:  (j['maxManagers']  as num?)?.toInt() ?? 1,
+    maxRooms:     (j['maxRooms']     as num?)?.toInt() ?? 2,
+    historyDays:  (j['historyDays']  as num?)?.toInt() ?? 30,
+    features: Map<String, bool>.from(
+      (j['features'] as Map<String, dynamic>?)
+          ?.map((k, v) => MapEntry(k, v as bool)) ?? {},
+    ),
+  );
+}
+
+// ─── Billing Status ───────────────────────────────────────────────────────────
 class BillingStatus {
-  final String plan;
-  final String effectivePlan;
-  final bool isTrialActive;
-  final int trialDaysLeft;
-  final int subscriptionDaysLeft;
+  final String    plan;
+  final String    effectivePlan;
+  final bool      isTrialActive;
+  final int       trialDaysLeft;
+  final int       subscriptionDaysLeft;
   final DateTime? trialEndsAt;
   final DateTime? planExpiresAt;
-  final int billableSeats;
+  final int       billableSeats;
   final PlanLimits limits;
-  final LastPayment? lastPayment;
 
   const BillingStatus({
     required this.plan,
@@ -70,96 +107,35 @@ class BillingStatus {
     this.planExpiresAt,
     required this.billableSeats,
     required this.limits,
-    this.lastPayment,
   });
 
   factory BillingStatus.fromJson(Map<String, dynamic> j) => BillingStatus(
-    plan: j['plan'] ?? 'starter',
-    effectivePlan: j['effectivePlan'] ?? 'starter',
-    isTrialActive: j['isTrialActive'] ?? false,
-    trialDaysLeft: j['trialDaysLeft'] ?? 0,
-    subscriptionDaysLeft: j['subscriptionDaysLeft'] ?? 0,
-    trialEndsAt: j['trialEndsAt'] != null
-        ? DateTime.tryParse(j['trialEndsAt'])?.toLocal()
-        : null,
-    planExpiresAt: j['planExpiresAt'] != null
-        ? DateTime.tryParse(j['planExpiresAt'])?.toLocal()
-        : null,
-    billableSeats: j['billableSeats'] ?? 0,
-    limits: PlanLimits.fromJson(j['limits'] ?? {}),
-    lastPayment: j['lastPayment'] != null
-        ? LastPayment.fromJson(j['lastPayment'])
-        : null,
-  );
-
-  bool get isPro     => effectivePlan == 'pro';
-  bool get isBusiness => effectivePlan == 'business';
-  bool get isEnterprise => effectivePlan == 'enterprise';
-  bool get isFreeOnly  => effectivePlan == 'starter';
-}
-
-class PlanLimits {
-  final int maxEmployees;
-  final int maxRooms;
-  final int historyDays;
-  final bool gpsTrace;
-  final bool exportReports;
-  final bool productivityScores;
-
-  const PlanLimits({
-    required this.maxEmployees,
-    required this.maxRooms,
-    required this.historyDays,
-    required this.gpsTrace,
-    required this.exportReports,
-    required this.productivityScores,
-  });
-
-  factory PlanLimits.fromJson(Map<String, dynamic> j) => PlanLimits(
-    maxEmployees: j['maxEmployees'] ?? 20,
-    maxRooms: j['maxRooms'] ?? 5,
-    historyDays: j['historyDays'] ?? 7,
-    gpsTrace: j['gpsTrace'] ?? false,
-    exportReports: j['exportReports'] ?? false,
-    productivityScores: j['productivityScores'] ?? false,
+    plan:                 j['plan'] as String,
+    effectivePlan:        j['effectivePlan'] as String,
+    isTrialActive:        j['isTrialActive'] as bool,
+    trialDaysLeft:        (j['trialDaysLeft'] as num).toInt(),
+    subscriptionDaysLeft: (j['subscriptionDaysLeft'] as num? ?? 0).toInt(),
+    trialEndsAt:          j['trialEndsAt'] != null
+        ? DateTime.parse(j['trialEndsAt']).toLocal() : null,
+    planExpiresAt:        j['planExpiresAt'] != null
+        ? DateTime.parse(j['planExpiresAt']).toLocal() : null,
+    billableSeats:        (j['billableSeats'] as num).toInt(),
+    limits: j['limits'] != null
+        ? PlanLimits.fromJson(j['limits'] as Map<String, dynamic>)
+        : PlanLimits(maxEmployees: 5, maxManagers: 1, maxRooms: 2,
+        historyDays: 30, features: {}),
   );
 }
 
-class LastPayment {
-  final String id;
-  final double amount;
-  final String status;
-  final DateTime? validUntil;
-  final DateTime? paidAt;
-
-  const LastPayment({
-    required this.id, required this.amount,
-    required this.status, this.validUntil, this.paidAt,
-  });
-
-  factory LastPayment.fromJson(Map<String, dynamic> j) => LastPayment(
-    id: j['id'] ?? '',
-    amount: (j['amount'] ?? 0).toDouble(),
-    status: j['status'] ?? '',
-    validUntil: j['validUntil'] != null
-        ? DateTime.tryParse(j['validUntil'])?.toLocal()
-        : null,
-    paidAt: j['paidAt'] != null
-        ? DateTime.tryParse(j['paidAt'])?.toLocal()
-        : null,
-  );
-}
-
-// ─── Order Response (from POST /api/billing/create-order) ─────────────────────
+// ─── Create Order Response ────────────────────────────────────────────────────
 class CreateOrderResponse {
   final String orderId;
   final String subscriptionId;
-  final int totalAmountPaise;
-  final int totalAmountINR;
+  final int    totalAmountPaise;
+  final int    totalAmountINR;
   final String razorpayKeyId;
   final String orgName;
   final String billingEmail;
-  final OrderBreakdown breakdown;
 
   const CreateOrderResponse({
     required this.orderId,
@@ -169,76 +145,47 @@ class CreateOrderResponse {
     required this.razorpayKeyId,
     required this.orgName,
     required this.billingEmail,
-    required this.breakdown,
   });
 
   factory CreateOrderResponse.fromJson(Map<String, dynamic> j) =>
       CreateOrderResponse(
-        orderId: j['orderId'] ?? '',
-        subscriptionId: j['subscriptionId'] ?? '',
-        totalAmountPaise: j['totalAmountPaise'] ?? 0,
-        totalAmountINR: j['totalAmountINR'] ?? 0,
-        razorpayKeyId: j['razorpayKeyId'] ?? '',
-        orgName: j['orgName'] ?? '',
-        billingEmail: j['billingEmail'] ?? '',
-        breakdown: OrderBreakdown.fromJson(j['breakdown'] ?? {}),
+        orderId:          j['orderId'] as String,
+        subscriptionId:   j['subscriptionId'] as String,
+        totalAmountPaise: (j['totalAmountPaise'] as num).toInt(),
+        totalAmountINR:   (j['totalAmountINR'] as num).toInt(),
+        razorpayKeyId:    j['razorpayKeyId'] as String,
+        orgName:          j['orgName'] as String,
+        billingEmail:     j['billingEmail'] as String,
       );
 }
 
-class OrderBreakdown {
-  final int basePlan;
-  final int perSeat;
-  final int seats;
-  final String billingCycle;
-  final String? discount;
-
-  const OrderBreakdown({
-    required this.basePlan, required this.perSeat,
-    required this.seats, required this.billingCycle, this.discount,
-  });
-
-  factory OrderBreakdown.fromJson(Map<String, dynamic> j) => OrderBreakdown(
-    basePlan: j['basePlan'] ?? 0,
-    perSeat: j['perSeat'] ?? 0,
-    seats: j['seats'] ?? 0,
-    billingCycle: j['billingCycle'] ?? 'monthly',
-    discount: j['discount'],
-  );
-}
-
-// ─── Payment History record ────────────────────────────────────────────────────
+// ─── Payment Record ───────────────────────────────────────────────────────────
 class PaymentRecord {
-  final String id;
-  final String plan;
-  final String billingCycle;
-  final int seats;
-  final double amountINR;
-  final String status;
-  final DateTime? validFrom;
-  final DateTime? validUntil;
+  final String    id;
+  final String    plan;
+  final String    billingCycle;
+  final double    amountINR;
+  final String    status;
   final DateTime? paidAt;
+  final DateTime? validUntil;
 
   const PaymentRecord({
-    required this.id, required this.plan, required this.billingCycle,
-    required this.seats, required this.amountINR, required this.status,
-    this.validFrom, this.validUntil, this.paidAt,
+    required this.id,
+    required this.plan,
+    required this.billingCycle,
+    required this.amountINR,
+    required this.status,
+    this.paidAt,
+    this.validUntil,
   });
 
   factory PaymentRecord.fromJson(Map<String, dynamic> j) => PaymentRecord(
-    id: j['id'] ?? '',
-    plan: j['plan'] ?? '',
-    billingCycle: j['billingCycle'] ?? 'monthly',
-    seats: j['seats'] ?? 0,
-    amountINR: (j['amountINR'] ?? 0).toDouble(),
-    status: j['status'] ?? '',
-    validFrom: j['validFrom'] != null
-        ? DateTime.tryParse(j['validFrom'])?.toLocal()
-        : null,
-    validUntil: j['validUntil'] != null
-        ? DateTime.tryParse(j['validUntil'])?.toLocal()
-        : null,
-    paidAt: j['paidAt'] != null
-        ? DateTime.tryParse(j['paidAt'])?.toLocal()
-        : null,
+    id:           j['id'] as String,
+    plan:         j['plan'] as String,
+    billingCycle: j['billingCycle'] as String,
+    amountINR:    (j['amountINR'] as num).toDouble(),
+    status:       j['status'] as String,
+    paidAt:       j['paidAt'] != null ? DateTime.parse(j['paidAt']).toLocal() : null,
+    validUntil:   j['validUntil'] != null ? DateTime.parse(j['validUntil']).toLocal() : null,
   );
 }

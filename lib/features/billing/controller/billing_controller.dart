@@ -188,7 +188,7 @@ class BillingController {
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   String _planLabel(String plan) => switch (plan) {
-    'pro'        => 'Pro',
+    'growth'     => 'Growth',
     'business'   => 'Business',
     'enterprise' => 'Enterprise',
     _            => 'Starter',
@@ -200,14 +200,7 @@ class BillingController {
   }
 
   bool hasFeature(String feature) {
-    final s = status;
-    if (s == null) return false;
-    return switch (feature) {
-      'gpsTrace'           => s.limits.gpsTrace,
-      'exportReports'      => s.limits.exportReports,
-      'productivityScores' => s.limits.productivityScores,
-      _                    => false,
-    };
+    return status?.limits.hasFeature(feature) ?? false;
   }
 
   void _snack(String msg, {bool success = false}) {

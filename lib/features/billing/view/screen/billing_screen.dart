@@ -96,7 +96,6 @@ class _BillingScreenState extends State<BillingScreen> {
                     ..._ctrl.plans.map((plan) => _PlanCard(
                       plan:                 plan,
                       billingCycle:         _selectedCycle,
-                      seats:                _ctrl.status?.billableSeats ?? 0,
                       currentEffectivePlan: _ctrl.status?.effectivePlan ?? 'starter',
                       isTrialActive:        _ctrl.status?.isTrialActive ?? false,
                       isProcessing:         _ctrl.isProcessing,
@@ -105,6 +104,11 @@ class _BillingScreenState extends State<BillingScreen> {
                         billingCycle: _selectedCycle,
                         billingEmail: email,
                       ),
+                      onContactSales: () {
+                        // TODO: Add launch url to open email / Whatsapp
+                        // launch URL or open email / WhatsApp
+                        // launchUrl(Uri.parse('mailto:sales@yourapp.com?subject=Enterprise+Inquiry'));
+                      },
                     )),
                   const SizedBox(height: 28),
                   if (_ctrl.history.isNotEmpty) ...[
@@ -215,7 +219,7 @@ class _CycleToggle extends StatelessWidget {
       padding: const EdgeInsets.all(4),
       child: Row(children: [
         _btn(context, 'monthly', 'Monthly'),
-        _btn(context, 'annual',  'Annual  –20%'),
+        _btn(context, 'annual', 'Annual  –16%'),
       ]),
     );
   }
@@ -249,128 +253,125 @@ class _CycleToggle extends StatelessWidget {
 class _PlanCard extends StatelessWidget {
   final PlanInfo plan;
   final String   billingCycle;
-  final int      seats;
   final String   currentEffectivePlan;
   final bool     isTrialActive;
   final bool     isProcessing;
-  final void Function(String billingEmail) onUpgrade;
+  final void Function(String email) onUpgrade;
+  final VoidCallback onContactSales;
 
   const _PlanCard({
     required this.plan,
     required this.billingCycle,
-    required this.seats,
     required this.currentEffectivePlan,
     required this.isTrialActive,
     required this.isProcessing,
     required this.onUpgrade,
+    required this.onContactSales,
   });
 
-  // Plan upgrade logic:
-  // - Show button if plan is higher rank than current effective plan
-  // - ALSO show button if current is on trial (trial is 'pro' effective)
-  //   but they haven't actually paid for pro yet → allow purchasing pro
-  bool get _showUpgrade {
-    if (plan.isFree) return false;
-    final currentRank = _rank(currentEffectivePlan);
-    final planRank    = _rank(plan.id);
-
-    // If on trial (effectivePlan = 'pro' from trial), still allow buying pro
-    if (isTrialActive && plan.id == 'pro') return true;
-
-    return planRank > currentRank;
-  }
-
   int _rank(String p) => switch (p) {
-    'starter'    => 0, 'pro'        => 1,
+    'starter'    => 0, 'growth'     => 1,
     'business'   => 2, 'enterprise' => 3, _ => 0,
   };
 
-  bool get _isCurrent =>
-      currentEffectivePlan == plan.id && !isTrialActive;
+  bool get _isCurrent => currentEffectivePlan == plan.id && !isTrialActive;
+
+  bool get _showUpgrade {
+    if (plan.isFree) return false;
+    if (plan.isContactSales) return true; // always show "Contact Sales"
+    if (isTrialActive && plan.id == currentEffectivePlan) return true;
+    return _rank(plan.id) > _rank(currentEffectivePlan);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final monthlyTotal = plan.monthlyTotal(seats);
-    final annualTotal  = (monthlyTotal * 12 * 0.8).round();
-    final displayPrice = billingCycle == 'annual'
-        ? (annualTotal / 12).round()
-        : monthlyTotal;
+    final isAnnual     = billingCycle == 'annual';
+    final displayPrice = isAnnual ? plan.monthlyEquivalentAnnual : plan.monthlyPrice;
 
-    final borderColor = _isCurrent
+    final accent = _isCurrent
         ? Pallete.primaryColor
-        : (isTrialActive && plan.id == 'pro')
+        : (isTrialActive && plan.id == currentEffectivePlan)
         ? Pallete.successColor
         : Theme.of(context).colorScheme.outline.withValues(alpha: 0.2);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color:  Theme.of(context).colorScheme.surface,
-        border: Border.all(color: borderColor, width: _isCurrent ? 2 : 1),
+        color:        Theme.of(context).colorScheme.surface,
+        border:       Border.all(color: accent, width: _isCurrent ? 2 : 1),
         borderRadius: BorderRadius.circular(14),
       ),
-      child: Column(children: [
-        // Header row
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        // ── Header ─────────────────────────────────────────────────────────
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(children: [
-                    Text(plan.label,
-                        style: Theme.of(context).textTheme.titleSmall!
-                            .copyWith(fontWeight: FontWeight.w800)),
-                    const SizedBox(width: 8),
-                    if (_isCurrent)
-                      _badge('Current', Pallete.primaryColor),
-                    if (isTrialActive && plan.id == 'pro')
-                      _badge('Trial Active', Pallete.successColor),
-                  ]),
-                  const SizedBox(height: 4),
-                  Text(
-                    plan.isFree
-                        ? 'Free forever'
-                        : '₹${_fmt(displayPrice)}/mo${billingCycle == "annual" ? " · billed annually" : ""}',
-                    style: TextStyle(
-                        color: Pallete.primaryColor,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14),
-                  ),
-                  if (!plan.isFree && seats > 0) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      '₹${_fmt(plan.priceMonthly ?? 0)} base + ₹${plan.perSeatPrice}×$seats seats = ₹${_fmt(monthlyTotal)}/mo',
-                      style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface
-                              .withValues(alpha: 0.4),
-                          fontSize: 11),
-                    ),
-                  ],
-                ],
-              )),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              Text(plan.label,
+                  style: Theme.of(context).textTheme.titleSmall!
+                      .copyWith(fontWeight: FontWeight.w800)),
+              const SizedBox(width: 8),
+              if (_isCurrent) _badge('Current', Pallete.primaryColor),
+              if (isTrialActive && plan.id == currentEffectivePlan)
+                _badge('Trial Active', Pallete.successColor),
+            ]),
+            const SizedBox(height: 4),
+            // ── Price ──────────────────────────────────────────────────────
+            Text(
+              plan.isContactSales
+                  ? '₹${_fmt(plan.monthlyPrice)}+/mo — Contact Sales'
+                  : plan.isFree
+                  ? 'Free forever'
+                  : isAnnual
+                  ? '₹${_fmt(displayPrice)}/mo  ·  ₹${_fmt(plan.yearlyPrice)}/yr'
+                  : '₹${_fmt(displayPrice)}/mo',
+              style: TextStyle(
+                  color:      Pallete.primaryColor,
+                  fontWeight: FontWeight.w700,
+                  fontSize:   14),
+            ),
+            if (isAnnual && !plan.isFree && !plan.isContactSales) ...[
+              const SizedBox(height: 2),
+              Text(
+                'Save ₹${_fmt(plan.monthlyPrice * 12 - plan.yearlyPrice)} vs monthly',
+                style: TextStyle(
+                    color:    Pallete.successColor,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500),
+              ),
             ],
-          ),
+          ]),
         ),
         const SizedBox(height: 14),
 
-        // Feature chips
+        // ── Limit chips ────────────────────────────────────────────────────
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Wrap(spacing: 8, runSpacing: 6, children: [
-            _featureChip(context, 'Up to ${plan.maxEmployees == 999999 ? "∞" : plan.maxEmployees} employees', true),
-            _featureChip(context, '${plan.historyDays == 999999 ? "∞" : plan.historyDays}-day history', true),
-            _featureChip(context, 'GPS trace',           plan.gpsTrace),
-            _featureChip(context, 'Export PDF/Excel',    plan.exportReports),
-            _featureChip(context, 'Productivity scores', plan.productivityScores),
+            _chip(context, _limitLabel(plan.maxEmployees, 'employees'), true),
+            _chip(context, _limitLabel(plan.maxManagers, 'managers'),   true),
+            _chip(context, _limitLabel(plan.maxRooms,    'rooms'),      true),
+            _chip(context,
+                plan.historyDays == -1
+                    ? '∞ history'
+                    : '${plan.historyDays}-day history',
+                true),
           ]),
         ),
+        const SizedBox(height: 8),
+
+        // ── Feature chips (dynamic from DB) ───────────────────────────────
+        if (plan.featureLabels.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Wrap(spacing: 8, runSpacing: 6, children: plan.featureLabels
+                .map((label) => _chip(context, label, true))
+                .toList()),
+          ),
         const SizedBox(height: 16),
 
-        // CTA button
-        if (_showUpgrade) ...[
+        // ── CTA ────────────────────────────────────────────────────────────
+        if (_showUpgrade)
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: SizedBox(
@@ -378,32 +379,47 @@ class _PlanCard extends StatelessWidget {
               height: 48,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Pallete.primaryColor,
-                  foregroundColor: Colors.white,
+                  backgroundColor: plan.isContactSales
+                      ? Theme.of(context).colorScheme.surface
+                      : Pallete.primaryColor,
+                  foregroundColor: plan.isContactSales
+                      ? Pallete.primaryColor
+                      : Colors.white,
+                  side: plan.isContactSales
+                      ? BorderSide(color: Pallete.primaryColor)
+                      : null,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10)),
                   elevation: 0,
                 ),
-                onPressed: isProcessing ? null : () => _showEmailDialog(context),
+                onPressed: isProcessing
+                    ? null
+                    : plan.isContactSales
+                    ? onContactSales
+                    : () => _showEmailDialog(context),
                 child: isProcessing
                     ? const SizedBox(width: 20, height: 20,
                     child: CircularProgressIndicator(
                         color: Colors.white, strokeWidth: 2))
                     : Text(
-                    isTrialActive && plan.id == 'pro'
-                        ? 'Buy Pro — Keep Access'
+                    plan.isContactSales
+                        ? 'Contact Sales →'
+                        : isTrialActive && plan.id == currentEffectivePlan
+                        ? 'Buy ${plan.label} — Keep Access'
                         : 'Upgrade to ${plan.label} →',
                     style: const TextStyle(
                         fontWeight: FontWeight.w700, fontSize: 15)),
               ),
             ),
-          ),
-        ] else ...[
+          )
+        else
           const SizedBox(height: 16),
-        ],
       ]),
     );
   }
+
+  String _limitLabel(int val, String unit) =>
+      val == -1 ? '∞ $unit' : 'Up to $val $unit';
 
   void _showEmailDialog(BuildContext context) {
     final emailCtrl = TextEditingController();
@@ -414,11 +430,14 @@ class _PlanCard extends StatelessWidget {
         title: Text('Upgrade to ${plan.label}',
             style: const TextStyle(fontWeight: FontWeight.w700)),
         content: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text('Enter the email for your billing receipt:',
-              style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface
-                      .withValues(alpha: 0.6),
-                  fontSize: 14)),
+          Text(
+            billingCycle == 'annual'
+                ? 'You\'ll be charged ₹${_fmt(plan.yearlyPrice)} for 12 months.'
+                : 'You\'ll be charged ₹${_fmt(plan.monthlyPrice)}/month.',
+            style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                fontSize: 13),
+          ),
           const SizedBox(height: 12),
           TextField(
             controller: emailCtrl,
@@ -426,8 +445,7 @@ class _PlanCard extends StatelessWidget {
             decoration: InputDecoration(
               hintText: 'billing@yourcompany.com',
               filled:   true,
-              border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10)),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
                 borderSide: BorderSide(color: Pallete.primaryColor, width: 2),
@@ -444,8 +462,7 @@ class _PlanCard extends StatelessWidget {
             style: ElevatedButton.styleFrom(
                 backgroundColor: Pallete.primaryColor,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8))),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
             onPressed: () {
               final email = emailCtrl.text.trim();
               Navigator.pop(context);
@@ -469,7 +486,7 @@ class _PlanCard extends StatelessWidget {
         style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.w700)),
   );
 
-  Widget _featureChip(BuildContext ctx, String label, bool enabled) => Container(
+  Widget _chip(BuildContext ctx, String label, bool enabled) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
     decoration: BoxDecoration(
       color: enabled
@@ -479,9 +496,10 @@ class _PlanCard extends StatelessWidget {
     ),
     child: Text(label,
         style: TextStyle(
-          color: enabled ? Pallete.primaryColor
+          color:      enabled ? Pallete.primaryColor
               : Theme.of(ctx).colorScheme.onSurface.withValues(alpha: 0.35),
-          fontSize: 11, fontWeight: FontWeight.w500,
+          fontSize:   11,
+          fontWeight: FontWeight.w500,
         )),
   );
 
