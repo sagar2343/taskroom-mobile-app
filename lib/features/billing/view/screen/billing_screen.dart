@@ -1,3 +1,4 @@
+import 'package:field_work/config/data/local/app_data.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../../config/theme/app_pallete.dart';
@@ -423,6 +424,7 @@ class _PlanCard extends StatelessWidget {
 
   void _showEmailDialog(BuildContext context) {
     final emailCtrl = TextEditingController();
+    emailCtrl.text = AppData().getUserData()?.organization?.billingEmail ?? '';
     showDialog(
       context: context,
       builder: (_) => AlertDialog(

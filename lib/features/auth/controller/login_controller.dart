@@ -21,6 +21,11 @@ class LoginController {
 
   LoginController({required this.context, required this.reloadData});
 
+  void init() {
+    orgCodeController.text = AppData().getKeyOrdCode() ?? '';
+    usernameController.text = AppData().getKeyUserName() ?? '';
+  }
+
   Future<void> handleLogin() async {
     if (!formKey.currentState!.validate()) return;
 
@@ -54,6 +59,12 @@ class LoginController {
         final user = response.data?.user;
         if (user != null) {
           AppData().setUserData(user);
+        }
+        if (orgCodeController.text.isNotEmpty) {
+          AppData().setKeyOrdCode(orgCodeController.text.trim());
+        }
+        if (usernameController.text.isNotEmpty) {
+          AppData().setKeyUserName(usernameController.text.trim());
         }
 
         Helpers.showSnackBar(

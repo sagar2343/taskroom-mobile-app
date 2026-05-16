@@ -21,6 +21,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void initState() {
     super.initState();
     _controller = LoginController(context: context, reloadData: reloadData);
+    _controller.init();
   }
 
   void reloadData() => setState(() {});

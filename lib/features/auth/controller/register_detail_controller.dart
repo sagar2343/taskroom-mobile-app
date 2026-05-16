@@ -81,6 +81,12 @@ class RegisterDetailController {
         if (response.data?.user != null) {
           AppData().setUserData(response.data!.user!);
         }
+        if (organizationCode.isNotEmpty) {
+          AppData().setKeyOrdCode(organizationCode.trim());
+        }
+        if (usernameController.text.isNotEmpty) {
+          AppData().setKeyUserName(usernameController.text.trim());
+        }
         Helpers.showSnackBar(context,
           response.message ?? 'Registered Successfully',
           type: SnackType.success,

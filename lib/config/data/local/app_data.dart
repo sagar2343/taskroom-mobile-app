@@ -19,6 +19,28 @@ class AppData {
   bool? _isDark;
   UserModel? _userData;
 
+  // cred details
+  String? _keyOrgCode;
+  String? _keyUserName;
+
+  void setKeyOrdCode(String code) {
+    _keyOrgCode = code;
+    _saveThisInstance();
+  }
+
+  void setKeyUserName(String name) {
+    _keyUserName = name;
+    _saveThisInstance();
+  }
+
+  String? getKeyOrdCode() {
+    return _keyOrgCode;
+  }
+
+  String? getKeyUserName() {
+    return _keyUserName;
+  }
+
   void setUserData(UserModel user) {
     _userData = user;
     _saveThisInstance();
@@ -79,6 +101,8 @@ class AppData {
   AppData.fromJson(Map<String, dynamic> json) {
     _isDark = json['isDark'];
     _accessToken = json['AccessToken'];
+    _keyOrgCode = json['KeyOrgCode'];
+    _keyUserName = json['KeyUserName'];
     _userData = json['UserData'] != null
         ? UserModel.fromJson(json['UserData'])
         : null;
@@ -88,6 +112,8 @@ class AppData {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['isDark'] = _isDark;
     data['AccessToken'] = _accessToken;
+    data['KeyOrgCode'] = _keyOrgCode;
+    data['KeyUserName'] = _keyUserName;
     data['UserData'] = _userData?.toJson();
     return data;
   }
