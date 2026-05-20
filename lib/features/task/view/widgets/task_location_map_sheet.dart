@@ -22,6 +22,8 @@ import 'package:flutter/scheduler.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import '../../../location_tracking/model/employee_location_update.dart';
+
 // ─────────────────────────────────────────────────────────────────────────────
 //  Step colours
 // _____________________________________________________________________________
@@ -59,7 +61,7 @@ class _MarkerAnimator {
   Ticker?        _ticker;
   _LatLngTween?  _tween;
   Duration       _elapsed = Duration.zero;
-  final Duration _dur     = const Duration(milliseconds: 800);
+  final Duration _dur     = const Duration(milliseconds: 2000);
   LatLng?        _current;
 
   _MarkerAnimator({required this.vsync, required this.onUpdate});
@@ -72,7 +74,11 @@ class _MarkerAnimator {
     _ticker?.stop(); _ticker?.dispose();
     _ticker  = vsync.createTicker((e) {
       _elapsed = e;
-      final t  = (_elapsed.inMilliseconds / _dur.inMilliseconds).clamp(0.0, 1.0);
+      // final t  = (_elapsed.inMilliseconds / _dur.inMilliseconds).clamp(0.0, 1.0);
+      final rawT = (_elapsed.inMilliseconds / _dur.inMilliseconds)
+          .clamp(0.0, 1.0);
+
+      final t = Curves.easeInOutCubic.transform(rawT);
       _current = _tween!.lerp(t);
       onUpdate(_current!);
       if (t >= 1.0) _ticker?.stop();
@@ -505,7 +511,26 @@ class _TaskLocationMapSheetState extends State<TaskLocationMapSheet>
       ));
     }
     if (_isLiveMode) {
-      final trail = _wsCtrl?.liveTrail ?? [];
+      // final trail = _wsCtrl?.liveTrail ?? [];
+      final rawTrail = _wsCtrl?.liveTrail ?? [];
+
+      final trail = <LatLng>[];
+
+      if (rawTrail.isNotEmpty) {
+
+        // keep all completed points except latest server point
+        if (rawTrail.length > 1) {
+          trail.addAll(rawTrail.sublist(0, rawTrail.length - 1));
+        }
+
+        // IMPORTANT:
+        // use animated marker position as live endpoint
+        if (_animatedEmpPos != null) {
+          trail.add(_animatedEmpPos!);
+        } else {
+          trail.add(rawTrail.last);
+        }
+      }
       if (trail.length >= 2) {
         lines.add(Polyline(
           polylineId: const PolylineId('live_trail'),

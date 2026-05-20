@@ -20,41 +20,7 @@ import 'package:flutter/foundation.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
-// ── EmployeeLocationUpdate  ───────────────────────────────────────────────────
-class EmployeeLocationUpdate {
-  final String taskId;
-  final String stepId;
-  final double lat;
-  final double lng;
-  final double? accuracy;
-  final int? battery;
-  final DateTime timestamp;
-
-  EmployeeLocationUpdate({
-    required this.taskId,
-    required this.stepId,
-    required this.lat,
-    required this.lng,
-    this.accuracy,
-    this.battery,
-    required this.timestamp,
-  });
-
-  LatLng get latLng => LatLng(lat, lng);
-
-  factory EmployeeLocationUpdate.fromMap(Map<String, dynamic> data) {
-    return EmployeeLocationUpdate(
-      taskId:    data['taskId'] as String? ?? '',
-      stepId:    data['stepId'] as String? ?? '',
-      lat:       (data['lat']  as num).toDouble(),
-      lng:       (data['lng']  as num).toDouble(),
-      accuracy:  (data['accuracy'] as num?)?.toDouble(),
-      battery:   (data['battery']  as num?)?.toInt(),
-      timestamp: (DateTime.tryParse(data['timestamp'] as String? ?? '')
-          ?? DateTime.now()).toLocal(),
-    );
-  }
-}
+import '../model/employee_location_update.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 class ManagerLocationController {
@@ -84,18 +50,14 @@ class ManagerLocationController {
     reloadData();
 
     final token  = AppData().getAccessToken() ?? '';
-    final wsUrl  = HttpConstants.getBaseURL
-        .replaceFirst('/api', '')
-        .replaceFirst(RegExp(r'/$'), '');
+    final base = HttpConstants.getBaseURL.replaceFirst(RegExp(r'/$'), '');
+    final wsUrl = base.endsWith('/api') ? base.substring(0, base.length - 4) : base;
 
     _socket = IO.io(
       wsUrl,
       IO.OptionBuilder()
           .setTransports(['websocket'])
           .disableAutoConnect()
-      // Disable automatic reconnection — the sheet's lifecycle manages this.
-      // Without this the socket keeps reconnecting after dispose(), causing
-      // setState() calls on a defunct widget.
           .disableReconnection()
           .build(),
     );

@@ -200,7 +200,9 @@ Future<void> _onStart(ServiceInstance service) async {
   debugPrint('[BG] Starting location tracking — task: $taskId');
 
   // ── Socket.IO connection ────────────────────────────────────────────────
-  final wsUrl = baseUrl.replaceFirst('/api', '').replaceFirst(RegExp(r'/$'), '');
+  final base = HttpConstants.getBaseURL.replaceFirst(RegExp(r'/$'), '');
+  final wsUrl = base.endsWith('/api') ? base.substring(0, base.length - 4) : base;
+
   final socket = IO.io(
     wsUrl,
     IO.OptionBuilder()
