@@ -23,8 +23,11 @@
 
     <application
         android:label="Task Room"
-        android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
+        android:allowBackup= "false"
+        android:name="${applicationName}"
+        android:turnScreenOn="true"
+        android:requestLegacyExternalStorage="true"
         android:enableOnBackInvokedCallback="true"
         android:usesCleartextTraffic="true">
         <activity

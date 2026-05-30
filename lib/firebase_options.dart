@@ -47,29 +47,30 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyC41pz710rM5GGLoBX4W_vifM15UqyAlBY',
-    appId: '1:183578397733:web:4597876ac499486a3cc3cc',
-    messagingSenderId: '183578397733',
-    projectId: 'taskroom-app-ecf05',
-    authDomain: 'taskroom-app-ecf05.firebaseapp.com',
-    storageBucket: 'taskroom-app-ecf05.firebasestorage.app',
-    measurementId: 'G-SQJWK1KYBF',
+    apiKey: 'AIzaSyAx0-xIF7yjdo31SolkC8BXZ35GQLLKbqA',
+    appId: '1:783159057095:web:37dffe34b6778a43243ce2',
+    messagingSenderId: '783159057095',
+    projectId: 'taskroom-50849',
+    authDomain: 'taskroom-50849.firebaseapp.com',
+    storageBucket: 'taskroom-50849.firebasestorage.app',
+    measurementId: 'G-S02BW7WNWT',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCD85QZV28y00fOOIuQnbgTblu5XBHbQh8',
-    appId: '1:183578397733:android:3b35d6f76c0729323cc3cc',
-    messagingSenderId: '183578397733',
-    projectId: 'taskroom-app-ecf05',
-    storageBucket: 'taskroom-app-ecf05.firebasestorage.app',
+    apiKey: 'AIzaSyADab1wa0XBjaxGGpwDcYOfHp_Gtl8gu4s',
+    appId: '1:783159057095:android:433a7e67f4d146b7243ce2',
+    messagingSenderId: '783159057095',
+    projectId: 'taskroom-50849',
+    storageBucket: 'taskroom-50849.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBnwSc9BSxJiB0-MiDx5GtJ6VBYDvx7M4o',
-    appId: '1:183578397733:ios:487e4d31fc408bbd3cc3cc',
-    messagingSenderId: '183578397733',
-    projectId: 'taskroom-app-ecf05',
-    storageBucket: 'taskroom-app-ecf05.firebasestorage.app',
-    iosBundleId: 'com.example.fieldWork',
+    apiKey: 'AIzaSyBHfrKYbYAavgYqmmP8Uqfry8Mxy0uW_Fs',
+    appId: '1:783159057095:ios:7f2db58beaa3b355243ce2',
+    messagingSenderId: '783159057095',
+    projectId: 'taskroom-50849',
+    storageBucket: 'taskroom-50849.firebasestorage.app',
+    iosBundleId: 'com.taskroom.app',
   );
+
 }

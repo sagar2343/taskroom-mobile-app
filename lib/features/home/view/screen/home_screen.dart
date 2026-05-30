@@ -759,6 +759,7 @@ class _HomeScreenState extends State<HomeScreen> {
           onTap: () => _controller.onRoomTapped(room),
           currentUserId: _controller.userData?.id,
           userRole: _controller.userData?.role,
+          taskSummary: room.taskSummary,
         );
       },
     );

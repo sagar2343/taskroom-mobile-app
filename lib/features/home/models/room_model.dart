@@ -14,6 +14,7 @@ class RoomModel {
   final List<RoomMember>? members;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final RoomTaskSummary? taskSummary;
 
   RoomModel({
     this.id,
@@ -31,6 +32,7 @@ class RoomModel {
     this.members,
     this.createdAt,
     this.updatedAt,
+    this.taskSummary,
   });
 
   factory RoomModel.fromJson(Map<String, dynamic> json) {
@@ -65,6 +67,9 @@ class RoomModel {
           : null,
       updatedAt: json['updatedAt'] != null
           ? DateTime.tryParse(json['updatedAt'])?.toLocal()
+          : null,
+      taskSummary: json['taskSummary'] is Map<String, dynamic>
+          ? RoomTaskSummary.fromJson(json['taskSummary'] as Map<String, dynamic>)
           : null,
     );
   }
@@ -221,3 +226,49 @@ class RoomMemberUser {
     );
   }
 }
+
+/// Lightweight per-room task snapshot returned alongside the /my-rooms list.
+/// Populated by the backend's aggregate so no extra API call is needed.
+class RoomTaskSummary {
+  final int inProgress;
+  final int pending;
+  final int overdue;
+  final int total;
+
+  const RoomTaskSummary({
+    required this.inProgress,
+    required this.pending,
+    required this.overdue,
+    required this.total,
+  });
+
+  factory RoomTaskSummary.fromJson(Map<String, dynamic> json) {
+    return RoomTaskSummary(
+      inProgress: (json['inProgress'] as num?)?.toInt() ?? 0,
+      pending:    (json['pending']    as num?)?.toInt() ?? 0,
+      overdue:    (json['overdue']    as num?)?.toInt() ?? 0,
+      total:      (json['total']      as num?)?.toInt() ?? 0,
+    );
+  }
+
+  // ── Basic presence checks ────────────────────────────────────────────────
+  bool get hasActiveTasks => total > 0;
+
+  // ── Single highest-priority status ───────────────────────────────────────
+  // Priority: overdue > inProgress > pending
+  // Used by the UI to show exactly ONE banner chip.
+  TaskBannerStatus get primaryStatus {
+    if (overdue > 0)    return TaskBannerStatus.overdue;
+    if (inProgress > 0) return TaskBannerStatus.inProgress;
+    return TaskBannerStatus.pending;
+  }
+
+  /// The count that matches primaryStatus.
+  int get primaryCount {
+    if (overdue > 0)    return overdue;
+    if (inProgress > 0) return inProgress;
+    return pending;
+  }
+}
+
+enum TaskBannerStatus { overdue, inProgress, pending }
