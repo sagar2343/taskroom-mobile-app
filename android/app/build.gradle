@@ -1,8 +1,8 @@
 plugins {
     id "com.android.application"
-    id 'com.google.gms.google-services'
     id "kotlin-android"
     id "dev.flutter.flutter-gradle-plugin"
+    id "com.google.gms.google-services"
     id "com.google.firebase.crashlytics"
 }
 
@@ -61,7 +61,7 @@ android {
 
     buildTypes {
         release {
-            signingConfig   signingConfigs.release
+            signingConfig   signingConfigs.release`
             minifyEnabled   false
             shrinkResources false
         }

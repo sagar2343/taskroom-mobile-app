@@ -9,6 +9,14 @@ import '../../main.dart';
 
 bool _isSessionDialogShowing = false;
 
+// These paths are public — never treat their 401s as session expiry
+const _publicPaths = {
+  '/api/auth/login',
+  '/api/auth/register',
+  '/api/auth/check-username',
+  '/api/organization/check',
+};
+
 class LoggerInterceptor extends InterceptorContract {
   @override
   Future<BaseRequest> interceptRequest({
@@ -26,44 +34,44 @@ class LoggerInterceptor extends InterceptorContract {
   }) async {
     debugPrint('----- Response -----');
     debugPrint('Code: ${response.statusCode}');
+
     if (response is Response) {
-      debugPrint((response).body);
+      debugPrint(response.body);
 
       if (response.statusCode == 401) {
-        try {
-          final body = jsonDecode(response.body);
-          final code = body['code'];
-          final message = body['message'] as String?;
+        // Skip session handling for public/auth endpoints
+        final path = response.request?.url.path ?? '';
+        final isPublicPath = _publicPaths.any((p) => path.endsWith(p));
 
-          if (code == 'SESSION_EXPIRED') {
-            _handleSessionExpired(
-                'Your account was logged in on another device. Please login again.'
-            );
-          } else {
-            // Covers: invalid token, token expired (7d), user not found
-            _handleSessionExpired(
-                message ?? 'Your session has expired. Please login again.'
-            );
-          }
-        } catch (_) {
-          _handleSessionExpired('Your session has expired. Please login again.');
+        if (!isPublicPath) {
+          _handleSessionExpired(response.body);
         }
       }
     }
+
     return response;
   }
 
-  void _handleSessionExpired(String message) {
+  void _handleSessionExpired(String rawBody) {
     if (_isSessionDialogShowing) return;
-    _isSessionDialogShowing = true;
+
+    // Parse the message from backend
+    String message = 'Your session has expired. Please login again.';
+    try {
+      final body = jsonDecode(rawBody);
+      final code = body['code'];
+
+      if (code == 'SESSION_EXPIRED') {
+        message = 'Your account was logged in on another device. Please login again.';
+      } else {
+        message = body['message'] as String? ?? message;
+      }
+    } catch (_) {}
 
     final context = navigatorKey.currentContext;
-    if (context == null) {
-      _isSessionDialogShowing = false;
-      return;
-    }
+    if (context == null) return;
 
-    // ✅ Clear immediately, not just on OK tap
+    _isSessionDialogShowing = true;
     AppData().clearAll();
 
     showDialog(
@@ -88,5 +96,4 @@ class LoggerInterceptor extends InterceptorContract {
       ),
     );
   }
-
 }
