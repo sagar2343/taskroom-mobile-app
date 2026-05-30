@@ -1,8 +1,13 @@
+import 'dart:async';
+import 'dart:ui';
+
 import 'package:field_work/config/data/local/app_data.dart';
 import 'package:field_work/firebase_options.dart';
 import 'package:field_work/services/fcm_service.dart';
 import 'package:field_work/services/notification_helper.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'config/theme/theme.dart';
@@ -18,6 +23,19 @@ void main() async {
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
+  // Catch Flutter framework errors
+  FlutterError.onError = (errorDetails) {
+    FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
+  };
+
+  // Catch async errors outside Flutter framework
+  PlatformDispatcher.instance.onError = (error, stack) {
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    return true;
+  };
+
+  await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(!kDebugMode);
+
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -25,12 +43,16 @@ void main() async {
 
   await NotificationHelper.initialize();
   await FcmService.initialize();
-
   await AppData().restoreInstance();
-
   await LocationBackgroundService.initialize();
 
-  runApp(const MyApp());
+  runZonedGuarded(
+        () => runApp(const MyApp()),
+        (error, stack) {
+      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    },
+  );
+  // runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {

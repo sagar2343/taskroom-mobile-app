@@ -130,7 +130,7 @@ class _SplashscreenState extends State<Splashscreen>
               ScaleTransition(
                 scale: _scaleAnimation,
                 child: Lottie.asset(
-                  'assets/lottieJson/penguin_look.json',
+                  'assets/lottieJson/splash_transparent.json',
                   width: 280,
                   height: 280,
                   fit: BoxFit.contain,

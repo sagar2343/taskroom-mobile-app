@@ -24,12 +24,12 @@
     <application
         android:label="Task Room"
         android:icon="@mipmap/ic_launcher"
-        android:allowBackup= "false"
+        android:allowBackup="false"
         android:name="${applicationName}"
         android:turnScreenOn="true"
         android:requestLegacyExternalStorage="true"
-        android:enableOnBackInvokedCallback="true"
-        android:usesCleartextTraffic="true">
+        android:enableOnBackInvokedCallback="true">
+<!--        android:usesCleartextTraffic="true">-->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -83,9 +83,9 @@
             android:foregroundServiceType="location|dataSync|connectedDevice"
             />
 
+        <!-- AndroidManifest.xml -->
         <meta-data android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyDWw0UIVV9A2MBTnoB1QpzfeLZv1Twny34"/>
-<!--        AIzaSyBYSOQndrUXUbQ20GKjmPh8McylZs0Al_U-->
+            android:value="${mapsApiKey}"/>
 
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

@@ -107,7 +107,7 @@ class LoginController {
 
   /// Opens the TaskRoom website in an in-app WebView instead of the system browser.
   void launchURL() {
-    final url = HttpConstants.getBaseURL;
+    final url = "https://taskroom.in";
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => InAppWebViewScreen(

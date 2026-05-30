@@ -3,6 +3,7 @@ plugins {
     id 'com.google.gms.google-services'
     id "kotlin-android"
     id "dev.flutter.flutter-gradle-plugin"
+    id "com.google.firebase.crashlytics"
 }
 
 // Load keystore properties
@@ -10,6 +11,15 @@ def keystoreProperties = new Properties()
 def keystorePropertiesFile = rootProject.file('key.properties')
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
+// Load local.properties for secrets
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file('local.properties')
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withReader('UTF-8') { reader ->
+        localProperties.load(reader)
+    }
 }
 
 android {
@@ -28,12 +38,16 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.taskroom.app"
         minSdk = 24
-        targetSdk = flutter.targetSdkVersion
+        targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        // Maps key injected from local.properties
+        manifestPlaceholders += [
+                mapsApiKey: localProperties.getProperty("MAPS_API_KEY") ?: ""
+        ]
     }
 
     signingConfigs {
@@ -47,8 +61,8 @@ android {
 
     buildTypes {
         release {
-            signingConfig signingConfigs.release   // ← was debug, now release
-            minifyEnabled false
+            signingConfig   signingConfigs.release
+            minifyEnabled   false
             shrinkResources false
         }
     }
