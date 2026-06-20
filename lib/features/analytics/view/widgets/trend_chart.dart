@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../model/analytics_model.dart';
-import '../../../../../config/theme/app_pallete.dart';
 
 // Add to pubspec.yaml:
 //   fl_chart: ^0.68.0

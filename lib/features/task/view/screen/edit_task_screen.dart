@@ -566,7 +566,6 @@ class _ExistingStepRow extends StatelessWidget {
   });
 
   static const _kGreen  = Color(0xFF10B981);
-  static const _kAmber  = Color(0xFFF59E0B);
   static const _kRed    = Color(0xFFEF4444);
 
   Color get _accentForStatus {

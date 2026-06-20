@@ -13,7 +13,6 @@
 
 import 'dart:ui' as ui;
 
-import 'package:field_work/config/theme/app_pallete.dart';
 import 'package:field_work/features/location_tracking/service/manager_location_controller.dart';
 import 'package:field_work/features/task/controller/manager_task_detail_controller.dart';
 import 'package:field_work/features/task/model/task_model.dart';

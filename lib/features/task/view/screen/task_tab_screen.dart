@@ -2,7 +2,6 @@ import 'package:field_work/features/task/controller/task_tab_controller.dart';
 import 'package:field_work/features/task/view/screen/create_task_screen.dart';
 import 'package:field_work/features/task/view/widgets/task_full_screen.dart';
 import 'package:field_work/features/task/view/widgets/task_card.dart';
-import 'package:field_work/features/widgets/filter_chip_button.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../config/theme/app_pallete.dart';

@@ -110,7 +110,6 @@ class _SignaturePadSheetState extends State<SignaturePadSheet> {
   @override
   Widget build(BuildContext context) {
     final bottom = MediaQuery.of(context).padding.bottom;
-    final sw = MediaQuery.of(context).size.width;
 
     return Container(
       margin: const EdgeInsets.fromLTRB(12, 60, 12, 0),

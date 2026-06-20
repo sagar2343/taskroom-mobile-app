@@ -1,4 +1,3 @@
-import 'package:field_work/core/utils/helpers.dart';
 import 'package:field_work/features/attendance/data/attendance_datasource.dart';
 import 'package:field_work/features/attendance/model/attendance_model.dart';
 import 'package:flutter/material.dart';
@@ -72,12 +71,6 @@ class ManagerAttendanceController {
   void setFilter(String f) {
     filterStatus = f;
     reloadData();
-  }
-
-  void _snack(String msg, {bool success = false}) {
-    if (!context.mounted) return;
-    Helpers.showSnackBar(context, msg,
-        type: success ? SnackType.success : SnackType.error);
   }
 
   void dispose() {}

@@ -52,8 +52,8 @@ class _ExportSheetState extends State<ExportSheet> {
     ExportType.teamSummary => 'Export Team Summary',
   };
 
-  String get _dateRangeLabel =>
-      '${_fmtDate(_from)}  –  ${_fmtDate(_to)}';
+  // String get _dateRangeLabel =>
+  //     '${_fmtDate(_from)}  –  ${_fmtDate(_to)}';
 
   String _fmtDate(DateTime d) =>
       '${d.day} ${_months[d.month - 1]} ${d.year}';
@@ -61,7 +61,7 @@ class _ExportSheetState extends State<ExportSheet> {
   @override
   Widget build(BuildContext context) {
     final cs  = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    // final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       decoration: BoxDecoration(

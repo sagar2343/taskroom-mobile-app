@@ -1,5 +1,3 @@
-import 'dart:io';
-
 class HttpConstants {
 
   static const kPingInterval = Duration(seconds: 10);

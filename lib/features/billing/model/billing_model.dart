@@ -1,5 +1,3 @@
-import 'package:intl/intl.dart';
-
 // ─── Plan Info ────────────────────────────────────────────────────────────────
 class PlanInfo {
   final String id;          // = slug ('starter','growth','business','enterprise')

@@ -136,7 +136,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen>
       if (marks.isNotEmpty && mounted) {
         final p = marks.first;
         final parts = [p.name, p.subLocality, p.locality, p.administrativeArea]
-            .where((s) => s != null && s!.isNotEmpty)
+            .where((s) => s != null && s.isNotEmpty)
             .toList();
         setState(() => _address = parts.join(', '));
       }
@@ -170,7 +170,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen>
           if (marks.isNotEmpty) {
             final p = marks.first;
             final label = [p.name, p.locality, p.administrativeArea, p.country]
-                .where((s) => s != null && s!.isNotEmpty)
+                .where((s) => s != null && s.isNotEmpty)
                 .join(', ');
             results.add(_Suggestion(label, LatLng(loc.latitude, loc.longitude)));
           }

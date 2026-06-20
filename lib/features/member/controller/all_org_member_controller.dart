@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import '../../../core/utils/helpers.dart';
 import '../../auth/model/user_model.dart';
 import '../data/member_datasource.dart';
-import '../model/room_member_response.dart';
 
 class AllOrgMemberController {
   final BuildContext context;
@@ -117,7 +116,7 @@ class AllOrgMemberController {
           final data = response?.data?.members ?? [];
           roomMemberIds = data.map((m) => m.user?.id ?? '')
               .where((id) => id.isNotEmpty)
-              .toSet() ?? {};
+              .toSet();
 
           debugPrint('Room members loaded: ${roomMemberIds.length} members');
         }

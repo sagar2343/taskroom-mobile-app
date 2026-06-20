@@ -24,7 +24,6 @@ class CreateTaskScreen extends StatefulWidget {
 
 class _CreateTaskScreenState extends State<CreateTaskScreen> {
   late final CreateTaskController _controller;
-  static const _kGreen = Color(0xFF10B981);
 
   @override
   void initState() {

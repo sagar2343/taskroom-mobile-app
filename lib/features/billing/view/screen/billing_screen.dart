@@ -33,9 +33,6 @@ class _BillingScreenState extends State<BillingScreen> {
   }
 
   // ── helpers that use Theme ────────────────────────────────────────────────
-  Color get _surface   => Theme.of(context).colorScheme.surface;
-  Color get _bg        => Theme.of(context).scaffoldBackgroundColor;
-  Color get _border    => Theme.of(context).colorScheme.outline.withValues(alpha: 0.25);
   Color get _textPrim  => Theme.of(context).colorScheme.onSurface;
   Color get _textSec   => Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.55);
 
