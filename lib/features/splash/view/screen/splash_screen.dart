@@ -219,6 +219,18 @@ class _SplashscreenState extends State<Splashscreen>
                           letterSpacing: 0.5,
                         ),
                       ),
+                      const SizedBox(height: 8),
+                      Text(
+                        _controller.version,
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w400,
+                          color: isDark
+                              ? const Color(0xff475569)
+                              : const Color(0xff94a3b8),
+                          letterSpacing: 0.5,
+                        ),
+                      ),
                     ],
                   ),
                 ),

@@ -3,6 +3,7 @@ import 'package:field_work/features/auth/model/user_model.dart';
 import 'package:field_work/features/home/view/screen/home_screen.dart';
 import 'package:field_work/services/permission_service.dart';
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../../../services/fcm_service.dart';
 import '../../auth/view/screen/login_screen.dart';
 import '../../location_tracking/service/location_background_service.dart';
@@ -12,12 +13,19 @@ class SplashController {
   final VoidCallback reloadData;
 
   UserModel? _user;
+  String version = '';
 
   SplashController({required this.context, required this.reloadData});
 
   final minimumDelay = Future.delayed(const Duration(seconds: 2));
 
   Future<void> startSplash() async {
+
+    PackageInfo.fromPlatform().then((info) {
+      version = 'v${info.version}';
+    });
+    reloadData();
+
     _user = AppData().getUserData();
 
     // Sync active task only for authenticated users
