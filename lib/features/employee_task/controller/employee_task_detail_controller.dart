@@ -1,14 +1,3 @@
-// lib/features/employee_task/controller/employee_task_detail_controller.dart
-//
-// Changes vs original:
-//   1. _syncPingTimer() removed — replaced by LocationBackgroundService
-//   2. startTask()  → calls LocationBackgroundService.instance.startTracking()
-//   3. startStep()  → calls LocationBackgroundService.instance.updateStep()
-//   4. completeStep() → if task is done, calls stopTracking()
-//   5. dispose()    → no longer calls _stopPing() (background service manages itself)
-//
-// Everything else (UI, signature, photo, markReached) is UNCHANGED.
-
 import 'dart:io';
 import 'package:field_work/features/employee_task/data/task_action_datasource.dart';
 import 'package:field_work/features/location_tracking/service/location_background_service.dart';

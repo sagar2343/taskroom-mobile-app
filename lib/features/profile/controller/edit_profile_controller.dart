@@ -50,6 +50,7 @@ class EditProfileController {
     try {
       final xf = await _picker.pickImage(
         source: ImageSource.gallery,
+        requestFullMetadata: false,
         imageQuality: 75,
         maxWidth: 800,
         maxHeight: 800,
