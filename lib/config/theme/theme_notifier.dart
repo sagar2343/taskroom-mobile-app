@@ -4,7 +4,7 @@ import '../data/local/app_data.dart';
 class ThemeNotifier extends ValueNotifier<ThemeMode> {
   ThemeNotifier()
       : super(
-    (AppData().getIsDarkTheme() ?? false)
+    (AppData().getIsDarkTheme() ?? true)
         ? ThemeMode.dark
         : ThemeMode.light,
   );
