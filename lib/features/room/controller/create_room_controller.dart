@@ -67,6 +67,7 @@ class CreateRoomController {
     try {
       final xf = await _picker.pickImage(
         source:       ImageSource.gallery,
+        requestFullMetadata: false,
         imageQuality: 80,
         maxWidth:     1200,
         maxHeight:    675,   // keeps 16:9 ratio (Cloudinary crops to 800×450)
