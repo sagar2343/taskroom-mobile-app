@@ -79,6 +79,7 @@ const APIRouteExportTasksPdf        = '/api/export/tasks/pdf';
 const APIRouteExportTasksExcel      = '/api/export/tasks/excel';
 /// Org-wide productivity summary PDF
 const APIRouteExportTeamSummaryPdf  = '/api/export/team-summary/pdf';
+const APIRouteExportTeamSummaryExcel = '/api/export/team-summary/excel';
 
 // ── NEW: Analytics (Pro+ for productivity scores) ────────────────────
 /// Today's org snapshot: online count, tasks, overdue

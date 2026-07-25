@@ -67,7 +67,7 @@ class _ManagerAttendanceScreenState extends State<ManagerAttendanceScreen> {
             icon: const Icon(Icons.download_rounded),
             onPressed: () => ExportSheet.show(
               context,
-              type: ExportType.attendance,
+              // type: ExportType.attendance,
             ),
             tooltip: 'Export Attendance',
           ),

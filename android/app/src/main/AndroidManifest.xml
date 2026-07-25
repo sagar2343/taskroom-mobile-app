@@ -66,6 +66,17 @@
         <!-- Support for 16KB page sizes -->
         <property android:name="android.app.PROPERTY_SUPPORTS_16KB_PAGE_SIZE" android:value="true" />
 
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths"/>
+        </provider>
+
 <!--        <service-->
 <!--            android:name="id.flutter.flutter_background_service.BackgroundService"-->
 <!--            android:foregroundServiceType="location|dataSync"-->
@@ -117,6 +128,14 @@
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:mimeType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:mimeType="application/pdf"/>
         </intent>
     </queries>
 </manifest>
