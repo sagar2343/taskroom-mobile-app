@@ -5,6 +5,7 @@ import 'package:field_work/services/permission_service.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../../services/fcm_service.dart';
+import '../../../services/in_app_update_service.dart';
 import '../../auth/view/screen/login_screen.dart';
 import '../../location_tracking/service/location_background_service.dart';
 
@@ -39,6 +40,11 @@ class SplashController {
     // FCM only makes sense for an authenticated user
     if (_user != null) {
       await FcmService.instance.registerToken();
+    }
+
+    // Check Play Store for updates (flexible, non-blocking by default)
+    if (context.mounted) {
+      await InAppUpdateService.instance.checkForUpdate(context: context, forceImmediate: true);
     }
 
     await minimumDelay;
