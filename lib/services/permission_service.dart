@@ -1,18 +1,4 @@
-// lib/services/permission_service.dart
-//
-// Changes from your current version:
-//   1. requestNotificationPermission() is REMOVED from requestAllPermissions().
-//      Reason: FcmService.initialize() (called in main.dart) already calls
-//      FirebaseMessaging.requestPermission() which handles both iOS and
-//      Android 13+ notification permission. Requesting it a second time via
-//      permission_handler is redundant and can confuse the OS permission flow.
-//
-//      The method itself is kept (commented out) in case you ever need to
-//      re-request permission from a settings screen.
-//
-// Everything else (location, battery optimization, background location)
-// is identical to your existing permission_service.dart.
-
+import 'package:field_work/config/data/local/app_data.dart';
 import 'package:flutter/material.dart';
 import 'package:location/location.dart';
 import 'package:permission_handler/permission_handler.dart' as ph;
@@ -29,19 +15,9 @@ class PermissionService {
 
     await requestLocationPermission();
     await requestBatteryOptimizationPermission();
-    await requestBackgroundLocationPermission(context);
-  }
-
-  // Kept for reference — call from a settings screen if needed,
-  // but NOT from requestAllPermissions().
-  static Future<void> requestNotificationPermission() async {
-    var status = await ph.Permission.notification.status;
-    if (status.isPermanentlyDenied) {
-      await ph.openAppSettings();
-    } else if (!status.isGranted) {
-      status = await ph.Permission.notification.request();
+    if (context.mounted) {
+      await requestBackgroundLocationPermission(context);
     }
-    debugPrint('[Permission] Notification: $status');
   }
 
   static Future<bool> requestLocationPermission() async {
@@ -61,20 +37,27 @@ class PermissionService {
 
   static Future<bool> requestBatteryOptimizationPermission() async {
     final isIgnoring = await ph.Permission.ignoreBatteryOptimizations.isGranted;
-    if (isIgnoring) {
-      debugPrint('[Permission] Battery optimization: already ignoring');
-      return true;
-    }
+    if (isIgnoring) return true;
 
     await ph.Permission.ignoreBatteryOptimizations.request();
-    final granted = await ph.Permission.ignoreBatteryOptimizations.isGranted;
-    debugPrint('[Permission] Battery optimization: $granted');
-    return granted;
+    return await ph.Permission.ignoreBatteryOptimizations.isGranted;
   }
 
   static Future<bool> requestBackgroundLocationPermission(
       BuildContext context,
       ) async {
+    // Check if already granted — no need to show disclosure again
+    final current = await ph.Permission.locationAlways.status;
+    if (current.isGranted) return true;
+
+    // ── MANDATORY: show prominent disclosure BEFORE system prompt ──
+    if (!context.mounted) return false;
+    final consented = await _showLocationDisclosureDialog(context);
+    if (!consented) {
+      debugPrint('[Permission] User declined disclosure — not requesting');
+      return false;
+    }
+
     final status = await ph.Permission.locationAlways.request();
     if (!status.isGranted) {
       if (context.mounted) _showPermissionDialog(context);
@@ -82,6 +65,51 @@ class PermissionService {
     }
     debugPrint('[Permission] Background location: granted');
     return true;
+  }
+
+  static Future<bool> _showLocationDisclosureDialog(BuildContext context) async {
+    final userData = AppData().getUserData();
+    final isLoggedInEmployee = userData != null &&
+        userData.role?.toLowerCase() == 'employee';
+    debugPrint('Is logged-in employee: $isLoggedInEmployee');
+
+    final result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: const Row(
+          children: [
+            Icon(Icons.location_on_rounded, color: Color(0xff137fec)),
+            SizedBox(width: 8),
+            Text('Location Access', style: TextStyle(fontSize: 18)),
+          ],
+        ),
+        content: const Text(
+          'TaskRoom tracks your location during work hours, '
+              'even in the background, so your manager can monitor '
+              'field activity and attendance.',
+          style: TextStyle(fontSize: 14, height: 1.5),
+        ),
+        actions: [
+          if (!isLoggedInEmployee)
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Not now'),
+            ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xff137fec),
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Continue'),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
   }
 
   static void _showPermissionDialog(BuildContext context) {
@@ -110,4 +138,5 @@ class PermissionService {
       ),
     );
   }
+
 }
