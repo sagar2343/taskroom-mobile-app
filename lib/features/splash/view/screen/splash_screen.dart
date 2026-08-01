@@ -81,7 +81,11 @@ class _SplashscreenState extends State<Splashscreen>
     });
 
     // Start the splash controller
-    _controller.startSplash();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _controller.startSplash();
+      }
+    });
   }
 
   void reloadData() => setState(() {});
