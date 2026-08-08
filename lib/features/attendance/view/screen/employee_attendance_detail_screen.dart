@@ -440,11 +440,19 @@ class _TaskStatsCard extends StatelessWidget {
     final t = ctrl.taskStats;
     if (t == null) return const SizedBox.shrink();
 
-    final total     = (t['total']     as num?)?.toInt() ?? 0;
-    final completed = (t['completed'] as num?)?.toInt() ?? 0;
-    final active    = (t['active']    as num?)?.toInt() ?? 0;
-    final pending   = (t['pending']   as num?)?.toInt() ?? 0;
-    final rate      = (t['completionRate'] as num?)?.toInt() ?? 0;
+    final total            = (t['total']            as num?)?.toInt() ?? 0;
+    final completed        = (t['completed']         as num?)?.toInt() ?? 0;
+    final completedOnTime  = (t['completedOnTime']   as num?)?.toInt() ?? 0;
+    final completedLate    = (t['completedLate']     as num?)?.toInt() ?? 0;
+    final active           = (t['active']            as num?)?.toInt() ?? 0;
+    final pending           = (t['pending']           as num?)?.toInt() ?? 0;
+    // Auto-cancelled by the nightly cron (missed the deadline) — this
+    // genuinely counts against the employee's completion rate.
+    final expired    = (t['expired']            as num?)?.toInt() ?? 0;
+    // Manager-cancelled (plans changed) — deliberately NOT counted against
+    // the employee. Shown separately, purely for context.
+    final managerCancelled = (t['managerCancelled']  as num?)?.toInt() ?? 0;
+    final rate             = (t['completionRate']    as num?)?.toInt() ?? 0;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -482,8 +490,18 @@ class _TaskStatsCard extends StatelessWidget {
               _TaskStat('Done',     '$completed', Pallete.kGreen),
               _TaskStat('Active',   '$active',    Pallete.kAmber),
               _TaskStat('Pending',  '$pending',   Colors.grey),
+              _TaskStat('Missed',   '$expired', Colors.redAccent),
             ],
           ),
+          if (completed > 0 && (completedOnTime > 0 || completedLate > 0)) ...[
+            const SizedBox(height: 8),
+            Text(
+              '$completedOnTime on time · $completedLate after deadline',
+              style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                  fontSize: 11,
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)),
+            ),
+          ],
           if (total > 0) ...[
             const SizedBox(height: 12),
             ClipRRect(
@@ -494,6 +512,17 @@ class _TaskStatsCard extends StatelessWidget {
                 backgroundColor: Theme.of(context).colorScheme.outline.withValues(alpha: 0.15),
                 valueColor: const AlwaysStoppedAnimation<Color>(Pallete.kGreen),
               ),
+            ),
+          ],
+          if (managerCancelled > 0) ...[
+            const SizedBox(height: 10),
+            Text(
+              '$managerCancelled task${managerCancelled > 1 ? 's' : ''} cancelled by manager '
+                  '(not counted toward performance)',
+              style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                  fontSize: 10.5,
+                  fontStyle: FontStyle.italic,
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4)),
             ),
           ],
         ],

@@ -11,6 +11,9 @@ import '../../../config/constant/http_constants.dart';
 import '../../../config/data/local/app_data.dart';
 import '../../../config/routes/api_routes.dart';
 import '../data/location_tracking_datasource.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 const _kPingIntervalSeconds    = 20;     // REST ping to store route in DB
 const _kMinDistanceMeters      = 5.0;   // skip WS broadcast if not moved 15 m
@@ -32,6 +35,19 @@ class LocationBackgroundService {
 
   // ── initialize()  — call once in main() before runApp() ──────────────────
   static Future<void> initialize() async {
+    // final service = FlutterBackgroundService();
+
+    const androidChannel = AndroidNotificationChannel(
+      'task_room_channel',
+      'Task Room Location Tracking',
+      description: 'Used to show the ongoing location tracking notification',
+      importance: Importance.low, // low = no sound/heads-up, just a silent persistent icon
+    );
+
+    final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+    await flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation
+    <AndroidFlutterLocalNotificationsPlugin>()?.createNotificationChannel(androidChannel);
+
     final service = FlutterBackgroundService();
 
     await service.configure(
@@ -97,16 +113,38 @@ class LocationBackgroundService {
     await prefs.setString(_kPrefBaseUrl, HttpConstants.getBaseURL);
 
     // 2. Request location permissions if needed
+    // 2. Request location permissions if needed
     final perm = await Geolocator.checkPermission();
     if (perm == LocationPermission.denied) {
       await Geolocator.requestPermission();
     }
 
+    // 2b. Android 13+ requires POST_NOTIFICATIONS to be granted BEFORE
+    // startForeground() is called, otherwise the OS rejects the notification
+    // and throws RemoteServiceException: "Bad notification for startForeground".
+    final notifStatus = await Permission.notification.status;
+    if (!notifStatus.isGranted) {
+      final result = await Permission.notification.request();
+      if (!result.isGranted) {
+        debugPrint('[LocationBGService] Notification permission denied — '
+            'skipping foreground service start to avoid a crash');
+        return;
+      }
+    }
+
     // 3. Start (or restart) the background service
     final running = await _service.isRunning();
     if (!running) {
-      await _service.startService();
-      debugPrint('[LocationBGService] service started');
+      try {
+        await _service.startService();
+        debugPrint('[LocationBGService] service started');
+      } catch (e, st) {
+        // Don't let a foreground-service start failure (e.g. OEM battery
+        // restrictions blocking it outright) crash the app — location
+        // tracking just won't start this time, task flow still works.
+        debugPrint('[LocationBGService] startService failed: $e');
+        FirebaseCrashlytics.instance.recordError(e, st, reason: 'startTracking startService failed');
+      }
     } else {
       // Already running — just update the step
       _service.invoke('update_step', {'stepId': stepId});

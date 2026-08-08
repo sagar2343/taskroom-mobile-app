@@ -1,6 +1,7 @@
 import 'package:field_work/config/theme/app_pallete.dart';
 import 'package:flutter/material.dart';
 import '../../../core/utils/helpers.dart';
+import '../../../services/review_helper.dart';
 import '../../member/data/member_datasource.dart';
 import '../../member/model/room_member_response.dart';
 import '../data/manager_task_datasource.dart';
@@ -251,6 +252,9 @@ class CreateTaskController {
           n > 1 ? 'Task created for $n employees!' : 'Task created successfully!',
           type: SnackType.success,
         );
+
+        // Manager just successfully created & assigned a task.
+        ReviewHelper.requestReview();
       } else {
         Helpers.showSnackBar(context,
             response['message'] ?? 'Something went wrong!',

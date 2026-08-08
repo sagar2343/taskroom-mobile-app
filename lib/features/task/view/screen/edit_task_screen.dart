@@ -100,7 +100,7 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
                 style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
             const SizedBox(height: 8),
             Text(
-              'Completed and cancelled tasks cannot be edited.',
+              'Completed, cancelled, and expired tasks cannot be edited.',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 13, color: Colors.grey.withValues(alpha: 0.7)),
             ),

@@ -393,6 +393,8 @@ class _EmployeeAttendanceCard extends StatelessWidget {
                       const SizedBox(width: 8),
                       _miniStat('Done',  '${emp.taskCompleted}', Pallete.kGreen),
                       const SizedBox(width: 8),
+                      _miniStat('Missed',  '${emp.taskExpired}', Pallete.kRed),
+                      const SizedBox(width: 8),
                       _miniStat('Rate',  '${emp.completionRate}%', Pallete.kAmber),
                       if (emp.firstOnline != null) ...[
                         const Spacer(),

@@ -186,7 +186,7 @@ class ManagerTaskDetailController {
   // ═══════════════════════════════════════════════════════════════════════
 
   bool get canCancel =>
-      !['completed', 'cancelled'].contains(task?.status);
+      !['completed', 'cancelled', 'expired'].contains(task?.status);
 
   bool get isActive => task?.status == 'in_progress';
 
@@ -257,6 +257,7 @@ class ManagerTaskDetailController {
     'completed'   => kGreen,
     'overdue'     => kRed,
     'cancelled'   => Colors.grey,
+    'expired'     => const Color(0xFFA855F7),
     _             => kAmber,
   };
 
@@ -278,6 +279,7 @@ class ManagerTaskDetailController {
     'completed'   => 'Completed',
     'overdue'     => 'Overdue',
     'cancelled'   => 'Cancelled',
+    'expired'     => 'Missed (Expired)',
     _             => 'Pending',
   };
 

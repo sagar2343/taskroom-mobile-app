@@ -447,10 +447,11 @@ class _ManagerTaskDetailScreenState extends State<ManagerTaskDetailScreen> {
         ],
         if (task.cancelledAt != null) ...[
           const SizedBox(height: 6),
-          _TimelineRow(label: 'Cancelled',
+          _TimelineRow(
+              label: task.status == 'expired' ? 'Expired (missed deadline)' : 'Cancelled',
               dt: task.cancelledAt,
-              icon: Icons.cancel_outlined,
-              color: Pallete.kRed),
+              icon: task.status == 'expired' ? Icons.timer_off_rounded : Icons.cancel_outlined,
+              color: task.status == 'expired' ? const Color(0xFFA855F7) : Pallete.kRed),
         ],
       ],
     ));
@@ -481,7 +482,7 @@ class _ManagerTaskDetailScreenState extends State<ManagerTaskDetailScreen> {
             )),
 
           // if (isActive && isCompleted)
-            const SizedBox(width: 5),
+          const SizedBox(width: 5),
 
           // Route trace button (always available once task started)
           if (isActive || isCompleted)
@@ -728,14 +729,14 @@ class _StepDetailTileState extends State<_StepDetailTile> {
                       const SizedBox(width: 8),
                       _StepPill(status: s.status, color: _color),
                       // if (s.status != 'pending') ...[
-                        const SizedBox(width: 6),
-                        AnimatedRotation(
-                          turns: _expanded ? 0.5 : 0,
-                          duration: const Duration(milliseconds: 200),
-                          child: Icon(Icons.keyboard_arrow_down_rounded,
-                              size: 18,
-                              color: Colors.grey.withValues(alpha: 0.5)),
-                        ),
+                      const SizedBox(width: 6),
+                      AnimatedRotation(
+                        turns: _expanded ? 0.5 : 0,
+                        duration: const Duration(milliseconds: 200),
+                        child: Icon(Icons.keyboard_arrow_down_rounded,
+                            size: 18,
+                            color: Colors.grey.withValues(alpha: 0.5)),
+                      ),
                       // ],
                     ]),
                   ),
@@ -1020,32 +1021,32 @@ class _StepExpandedContent extends StatelessWidget {
     );
   }
 
-  // void _openPhoto(BuildContext context, String url) {
-  //   showDialog(
-  //     context: context,
-  //     builder: (_) => Dialog(
-  //       backgroundColor: Colors.transparent,
-  //       child: Stack(children: [
-  //         ClipRRect(
-  //           borderRadius: BorderRadius.circular(16),
-  //           child: Image.network(url, fit: BoxFit.contain),
-  //         ),
-  //         Positioned(top: 8, right: 8,
-  //             child: GestureDetector(
-  //               onTap: () => Navigator.pop(context),
-  //               child: Container(
-  //                 padding: const EdgeInsets.all(8),
-  //                 decoration: BoxDecoration(
-  //                     color: Colors.black54,
-  //                     borderRadius: BorderRadius.circular(10)),
-  //                 child: const Icon(Icons.close_rounded,
-  //                     color: Colors.white, size: 18),
-  //               ),
-  //             )),
-  //       ]),
-  //     ),
-  //   );
-  // }
+// void _openPhoto(BuildContext context, String url) {
+//   showDialog(
+//     context: context,
+//     builder: (_) => Dialog(
+//       backgroundColor: Colors.transparent,
+//       child: Stack(children: [
+//         ClipRRect(
+//           borderRadius: BorderRadius.circular(16),
+//           child: Image.network(url, fit: BoxFit.contain),
+//         ),
+//         Positioned(top: 8, right: 8,
+//             child: GestureDetector(
+//               onTap: () => Navigator.pop(context),
+//               child: Container(
+//                 padding: const EdgeInsets.all(8),
+//                 decoration: BoxDecoration(
+//                     color: Colors.black54,
+//                     borderRadius: BorderRadius.circular(10)),
+//                 child: const Icon(Icons.close_rounded,
+//                     color: Colors.white, size: 18),
+//               ),
+//             )),
+//       ]),
+//     ),
+//   );
+// }
 }
 
 

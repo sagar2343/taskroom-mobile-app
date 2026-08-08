@@ -84,22 +84,37 @@ class AttendanceModel {
 
 class AttendanceTaskStats {
   final int completed;
+  final int completedOnTime;
+  final int completedLate;
   final int inProgress;
-  final int assigned;
+  final int pending;
+  final int assigned;           // = total (kept name for backward compatibility)
+  final int expired;            // missed deadline — counts against employee
+  final int managerCancelled;   // manager changed plans — excluded from total, shown for context
   final int completionRate;
 
   const AttendanceTaskStats({
     required this.completed,
+    this.completedOnTime = 0,
+    this.completedLate = 0,
     required this.inProgress,
+    this.pending = 0,
     required this.assigned,
+    this.expired = 0,
+    this.managerCancelled = 0,
     required this.completionRate,
   });
 
   factory AttendanceTaskStats.fromJson(Map<String, dynamic> j) => AttendanceTaskStats(
-    completed:      (j['completed']      as num?)?.toInt() ?? 0,
-    inProgress:     (j['inProgress']     as num?)?.toInt() ?? 0,
-    assigned:       (j['assigned']       as num?)?.toInt() ?? 0,
-    completionRate: (j['completionRate'] as num?)?.toInt() ?? 0,
+    completed:        (j['completed']        as num?)?.toInt() ?? 0,
+    completedOnTime:  (j['completedOnTime']  as num?)?.toInt() ?? 0,
+    completedLate:    (j['completedLate']    as num?)?.toInt() ?? 0,
+    inProgress:       (j['inProgress']       as num?)?.toInt() ?? (j['active'] as num?)?.toInt() ?? 0,
+    pending:          (j['pending']          as num?)?.toInt() ?? 0,
+    assigned:         (j['assigned']         as num?)?.toInt() ?? (j['total'] as num?)?.toInt() ?? 0,
+    expired:          (j['expired']           as num?)?.toInt() ?? 0,
+    managerCancelled: (j['managerCancelled'] as num?)?.toInt() ?? 0,
+    completionRate:   (j['completionRate']   as num?)?.toInt() ?? 0,
   );
 
   factory AttendanceTaskStats.empty() =>
@@ -206,6 +221,8 @@ class OrgEmployeeAttendance {
   final int taskTotal;
   final int taskCompleted;
   final int taskActive;
+  final int taskExpired;
+  final int taskManagerCancelled;
   final int completionRate;
 
   const OrgEmployeeAttendance({
@@ -224,6 +241,8 @@ class OrgEmployeeAttendance {
     required this.taskTotal,
     required this.taskCompleted,
     required this.taskActive,
+    this.taskExpired = 0,
+    this.taskManagerCancelled = 0,
     required this.completionRate,
   });
 
@@ -246,10 +265,12 @@ class OrgEmployeeAttendance {
       firstOnline: att['firstOnline'] != null
           ? DateTime.parse(att['firstOnline'].toString()).toLocal()
           : null,
-      taskTotal:      (task['total']          as num?)?.toInt() ?? 0,
-      taskCompleted:  (task['completed']       as num?)?.toInt() ?? 0,
-      taskActive:     (task['active']          as num?)?.toInt() ?? 0,
-      completionRate: (task['completionRate']  as num?)?.toInt() ?? 0,
+      taskTotal:            (task['total']            as num?)?.toInt() ?? 0,
+      taskCompleted:        (task['completed']         as num?)?.toInt() ?? 0,
+      taskActive:           (task['active']            as num?)?.toInt() ?? 0,
+      taskExpired:          (task['expired']           as num?)?.toInt() ?? 0,
+      taskManagerCancelled: (task['managerCancelled']  as num?)?.toInt() ?? 0,
+      completionRate:       (task['completionRate']    as num?)?.toInt() ?? 0,
     );
   }
 }

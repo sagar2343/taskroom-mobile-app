@@ -20,7 +20,7 @@ class TaskTabController {
   bool get isManager => AppData().getUserData()?.role == 'manager';
 
   // Manager filters
-  String selectedStatus = 'all';       // all | pending | in_progress | completed | overdue | cancelled
+  String selectedStatus = 'all';       // all | pending | in_progress | completed | overdue | cancelled | expired | missed
   String selectedPriority = 'all';     // all | low | medium | high
 
   // Employee filters (tab-style)
@@ -39,7 +39,8 @@ class TaskTabController {
     {'label': 'Completed', 'value': 'completed'},
     {'label': 'Overdue', 'value': 'overdue'},
     {'label': 'Cancelled', 'value': 'cancelled'},
-    {'label': 'Missed', 'value': 'missed'},
+    {'label': 'Expired', 'value': 'expired'},
+    {'label': 'Missed (live)', 'value': 'missed'},
   ];
 
   final List<Map<String, String>> priorityFilters = [

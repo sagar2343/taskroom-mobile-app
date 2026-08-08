@@ -151,7 +151,7 @@ class EditTaskController {
   /// True when any task-level field can be changed at all.
   bool get canEditTask {
     final s = task?.status ?? 'pending';
-    return !['completed', 'cancelled'].contains(s);
+    return !['completed', 'cancelled', 'expired'].contains(s);
   }
 
   /// True when the task hasn't started yet — allows full schedule edits.
@@ -162,7 +162,7 @@ class EditTaskController {
 
   /// Can we still add new steps?
   bool get canAddSteps =>
-      canEditTask && !['completed', 'cancelled'].contains(task?.status ?? '');
+      canEditTask && !['completed', 'cancelled', 'expired'].contains(task?.status ?? '');
 
   /// Can this existing step be removed?
   bool canRemoveStep(StepEditState ss) {

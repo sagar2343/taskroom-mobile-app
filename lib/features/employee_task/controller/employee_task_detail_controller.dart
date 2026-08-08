@@ -7,6 +7,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../config/theme/app_pallete.dart';
 import '../../../core/utils/helpers.dart';
+import '../../../services/review_helper.dart';
 import '../../../services/upload_service.dart';
 
 class EmployeeTaskController {
@@ -229,6 +230,9 @@ class EmployeeTaskController {
         // ── Stop tracking when entire task is done ─────────────────────
         if (taskDone) {
           await LocationBackgroundService.instance.stopTracking();
+
+          // Employee just finished a whole task — a genuine "win" moment.
+          ReviewHelper.requestReview();
         }
       } else {
         if (context.mounted) {

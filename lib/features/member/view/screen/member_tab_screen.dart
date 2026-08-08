@@ -241,7 +241,7 @@ class _MemberCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final user = member.user;
-    final color  = user.isOnline ? Pallete.kGreen : Colors.redAccent;
+    final color  = (user?.isOnline ?? false) ? Pallete.kGreen : Colors.redAccent;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -262,13 +262,13 @@ class _MemberCard extends StatelessWidget {
         children: [
           // Avatar
           Hero(
-            tag: 'member_${user.id}',
+            tag: 'member_${user?.id ?? member.hashCode}',
             child: GestureDetector(
               onTap: () => ImagePreview.show(
                 context,
-                url:   user!.profilePicture,
-                label: user!.fullName,
-                heroTag: 'member_${user.id}',
+                url:   user?.profilePicture,
+                label: user?.fullName ?? 'Unknown',
+                heroTag: 'member_${user?.id ?? ''}',
               ),
               child: Stack(
                 children: [
