@@ -78,10 +78,12 @@ class AttendanceDatasource {
         String? from,
         String? to,
         String? month,
+        bool allTimeTasks = false,
       }) =>
       _get('$APIRouteAttendaceOfEmployee$employeeId', {
         if (from  != null) 'from':  from,
         if (to    != null) 'to':    to,
         if (month != null) 'month': month,
+        if (allTimeTasks) 'allTimeTasks': 'true',
       });
 }

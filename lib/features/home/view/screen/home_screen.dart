@@ -279,11 +279,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 IconButton(
                   icon: Icon(
                     userData?.role == 'manager'
-                        ? Icons.group
-                        : Icons.access_time,
+                        ? Icons.fact_check_outlined
+                        : Icons.event_available_outlined,
                     size: 26,
                     color: Theme.of(context).colorScheme.onSurface,
                   ),
+                  tooltip: userData?.role == 'manager'
+                      ? 'Team Attendance'
+                      : 'My Attendance',
                   onPressed: () {
                     if (userData?.role == 'manager') {
                       Navigator.push(

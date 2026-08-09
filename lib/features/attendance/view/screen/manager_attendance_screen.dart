@@ -295,7 +295,7 @@ class _EmployeeAttendanceCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         margin:  const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
         decoration: BoxDecoration(
           color:        Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
@@ -390,11 +390,11 @@ class _EmployeeAttendanceCard extends StatelessWidget {
                   Row(
                     children: [
                       _miniStat('Tasks', '${emp.taskTotal}',     Pallete.primaryColor),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                       _miniStat('Done',  '${emp.taskCompleted}', Pallete.kGreen),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                       _miniStat('Missed',  '${emp.taskExpired}', Pallete.kRed),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                       _miniStat('Rate',  '${emp.completionRate}%', Pallete.kAmber),
                       if (emp.firstOnline != null) ...[
                         const Spacer(),

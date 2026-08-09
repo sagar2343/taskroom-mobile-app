@@ -1,7 +1,5 @@
-// lib/features/attendance/view/screen/employee_attendance_detail_screen.dart
-
 import 'package:field_work/config/theme/app_pallete.dart';
-import 'package:field_work/features/attendance/controller/manager_attendance_controller.dart';
+import 'package:field_work/features/attendance/controller/employee_attendance_detail_controller.dart';
 import 'package:field_work/features/attendance/model/attendance_model.dart';
 import 'package:field_work/features/widgets/animated_screen_wrapper.dart';
 import 'package:field_work/features/widgets/avatar_initials.dart';
@@ -483,7 +481,9 @@ class _TaskStatsCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
+          _TaskScopeToggle(ctrl: ctrl),
+          const SizedBox(height: 14),
           Row(
             children: [
               _TaskStat('Total',    '$total',     Pallete.primaryColor),
@@ -526,6 +526,70 @@ class _TaskStatsCard extends StatelessWidget {
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+// ── Task Productivity scope toggle: "This Month" vs "All Time" ───────────────
+
+class _TaskScopeToggle extends StatelessWidget {
+  final EmployeeAttendanceDetailController ctrl;
+  const _TaskScopeToggle({required this.ctrl});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.outline.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          _scopeOption(context, label: ctrl.periodLabel, selected: !ctrl.showAllTimeTasks,
+              onTap: () => ctrl.setAllTimeTasks(false)),
+          _scopeOption(context, label: 'All Time', selected: ctrl.showAllTimeTasks,
+              onTap: () => ctrl.setAllTimeTasks(true)),
+        ],
+      ),
+    );
+  }
+
+  Widget _scopeOption(BuildContext context, {
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    final theme = Theme.of(context);
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(vertical: 7),
+          decoration: BoxDecoration(
+            color: selected ? Pallete.primaryColor : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Center(
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: selected
+                    ? Colors.white
+                    : theme.colorScheme.onSurface.withValues(alpha: 0.55),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
