@@ -3,7 +3,6 @@ import 'package:field_work/features/task/view/screen/create_task_screen.dart';
 import 'package:field_work/features/task/view/widgets/task_full_screen.dart';
 import 'package:field_work/features/task/view/widgets/task_card.dart';
 import 'package:flutter/material.dart';
-
 import '../../../../config/theme/app_pallete.dart';
 import '../../../widgets/animated_screen_wrapper.dart';
 import '../widgets/filter_bar.dart';
@@ -135,6 +134,19 @@ class _TasksTabScreenState extends State<TasksTabScreen> {
         return TaskCardWidget(
           task: task,
           isManager: _controller.isManager,
+          onRecreate: (task.status == 'cancelled' || task.status == 'expired')
+              ? () {
+            Navigator.push(context, MaterialPageRoute(
+              builder: (_) => CreateTaskScreen(
+                roomId: widget.roomId,
+                roomName: 'ROOM NAME',
+                recreateFrom: task,
+                onTaskCreated: () => _controller.onRefresh(),
+              ),
+              fullscreenDialog: true,
+            ));
+          }
+              : null,
           onTap: () {
             final route = _controller.isManager
                 ? MaterialPageRoute(

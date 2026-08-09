@@ -5,17 +5,20 @@ import 'package:field_work/features/widgets/custom_textfield.dart';
 import 'package:flutter/material.dart';
 import '../../../widgets/image_preview.dart';
 import '../../model/task_form_models.dart';
+import '../../model/task_model.dart';
 
 class CreateTaskScreen extends StatefulWidget {
   final String roomId;
   final String roomName;
   final VoidCallback? onTaskCreated;
+  final TaskModel? recreateFrom;
 
   const CreateTaskScreen({
     super.key,
     required this.roomId,
     required this.roomName,
     this.onTaskCreated,
+    this.recreateFrom,
   });
 
   @override
@@ -32,6 +35,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
       reloadData: reloadData,
       roomId: widget.roomId,
       onCreated: widget.onTaskCreated,
+      recreateFrom: widget.recreateFrom,
     );
     super.initState();
     _controller.init();
@@ -61,6 +65,9 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
               child: CustomScrollView(
                 slivers: [
                   const SliverToBoxAdapter(child: SizedBox(height: 12)),
+
+                  if (widget.recreateFrom != null)
+                    SliverToBoxAdapter(child: _buildRecreateBanner(theme)),
 
                   // ── Task Details
                   SliverToBoxAdapter(child: _buildCard(
@@ -584,6 +591,39 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
     );
   }
 
+  Widget _buildRecreateBanner(ThemeData theme) {
+    final original = widget.recreateFrom!;
+    final wasExpired = original.status == 'expired';
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Pallete.primaryColor.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Pallete.primaryColor.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.replay_rounded, size: 18, color: Pallete.primaryColor),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              wasExpired
+                  ? 'Recreating from an expired (missed deadline) task. Details are pre-filled — review the schedule and assignees before creating.'
+                  : 'Recreating from a cancelled task. Details are pre-filled — review the schedule and assignees before creating.',
+              style: theme.textTheme.bodySmall!.copyWith(
+                color: Pallete.primaryColor,
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+                height: 1.3,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   AppBar _buildAppBar(ThemeData theme) {
     return AppBar(
       elevation: 0,
@@ -603,7 +643,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
       title: Column(
         children: [
           Text(
-            'Create Task',
+            widget.recreateFrom != null ? 'Recreate Task' : 'Create Task',
             style: theme.textTheme.titleMedium!.copyWith(
               fontWeight: FontWeight.w800,
               letterSpacing: -0.3,

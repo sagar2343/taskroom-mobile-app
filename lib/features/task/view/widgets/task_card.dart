@@ -6,12 +6,15 @@ class TaskCardWidget extends StatelessWidget {
   final TaskModel task;
   final bool isManager;
   final VoidCallback onTap;
+  /// Shown only when isManager is true AND task.status is 'cancelled' or 'expired'.
+  final VoidCallback? onRecreate;
 
   const TaskCardWidget({
     super.key,
     required this.task,
     required this.isManager,
     required this.onTap,
+    this.onRecreate,
   });
 
   // ── Status config
@@ -169,6 +172,41 @@ class TaskCardWidget extends StatelessWidget {
                         _StepCount(task: task, theme: theme),
                     ],
                   ),
+
+                  // ── Recreate action (manager only, cancelled/expired tasks only)
+                  if (isManager &&
+                      onRecreate != null &&
+                      (task.status == 'cancelled' || task.status == 'expired')) ...[
+                    const SizedBox(height: 10),
+                    GestureDetector(
+                      onTap: onRecreate,
+                      behavior: HitTestBehavior.opaque,
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 9),
+                        decoration: BoxDecoration(
+                          color: Pallete.primaryColor.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Pallete.primaryColor.withValues(alpha: 0.25)),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.replay_rounded, size: 16, color: Pallete.primaryColor),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Recreate Task',
+                              style: theme.textTheme.bodySmall!.copyWith(
+                                color: Pallete.primaryColor,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 12.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
 
                   // ── Progress bar (only if has steps)
                   if ((task.totalSteps ?? 0) > 0) ...[

@@ -5,9 +5,9 @@ import 'package:field_work/core/utils/helpers.dart';
 import 'package:field_work/features/task/controller/manager_task_detail_controller.dart';
 import 'package:field_work/features/task/model/task_model.dart';
 import 'package:field_work/features/task/view/screen/edit_task_screen.dart';
+import 'package:field_work/features/task/view/screen/create_task_screen.dart';
 import 'package:field_work/features/task/view/widgets/task_location_map_sheet.dart';
 import 'package:flutter/material.dart';
-
 import '../../../widgets/image_preview.dart';
 
 class ManagerTaskDetailScreen extends StatefulWidget {
@@ -192,7 +192,45 @@ class _ManagerTaskDetailScreenState extends State<ManagerTaskDetailScreen> {
                     ),
                   ),
                 ),
-              ]
+              ],
+              if (_c.task?.status == 'cancelled' || _c.task?.status == 'expired')
+                Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(context, MaterialPageRoute(
+                        builder: (_) => CreateTaskScreen(
+                          roomId: _c.task!.room?.id ?? '',
+                          roomName: _c.task!.room?.name ?? '',
+                          recreateFrom: _c.task,
+                        ),
+                        fullscreenDialog: true,
+                      )).then((_) => _c.init());
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 7),
+                      decoration: BoxDecoration(
+                        color: Pallete.primaryColor.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                            color: Pallete.primaryColor.withValues(alpha: 0.3)),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.replay_rounded, size: 14, color: Pallete.primaryColor),
+                          SizedBox(width: 5),
+                          Text('Recreate',
+                              style: TextStyle(
+                                  color: Pallete.primaryColor,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 12)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
             ],
             flexibleSpace: FlexibleSpaceBar(
               background: Container(

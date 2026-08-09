@@ -6,6 +6,7 @@ import '../../member/data/member_datasource.dart';
 import '../../member/model/room_member_response.dart';
 import '../data/manager_task_datasource.dart';
 import '../model/task_form_models.dart';
+import '../model/task_model.dart';
 import '../view/widgets/step_form_sheet.dart';
 
 class CreateTaskController {
@@ -13,11 +14,15 @@ class CreateTaskController {
   final VoidCallback reloadData;
   final String roomId;
   final VoidCallback? onCreated;
+  /// When set, the form is pre-filled from this (cancelled/expired) task —
+  /// the manager tapped "Recreate Task". See _applyRecreateData().
+  final TaskModel? recreateFrom;
 
   final _dataSource = ManagerTaskDatasource();
 
   bool isSubmitting      = false;
   bool isLoadingMembers  = false;
+  bool isLoading = false;
 
   // ── Form: task-level fields ────────────────────────────────────────────
   final TextEditingController titleCtrl = TextEditingController();
@@ -40,9 +45,13 @@ class CreateTaskController {
     required this.reloadData,
     required this.roomId,
     this.onCreated,
+    this.recreateFrom,
   });
 
-  void init() async => getRoomMembers();
+  void init() async {
+    await getRoomMembers();
+    if (recreateFrom != null) _applyRecreateData();
+  }
 
   Future<void> getRoomMembers() async {
     isLoadingMembers = true;
@@ -56,6 +65,70 @@ class CreateTaskController {
       debugPrint('load members error: $e');
     }
     isLoadingMembers = false;
+    reloadData();
+  }
+
+  // ── Recreate from a cancelled/expired task ─────────────────────────────────
+
+  void _applyRecreateData() {
+    isLoading = true;
+    reloadData();
+    final original = recreateFrom!;
+
+    titleCtrl.text = original.title ?? '';
+    noteCtrl.text  = original.note  ?? '';
+    priority       = original.priority ?? 'medium';
+    trackLocation  = original.isFieldWork ?? false;
+
+    Duration shift = Duration.zero;
+
+    final origStart = original.startDatetime;
+    final origEnd   = original.endDatetime;
+    if (origStart != null && origEnd != null) {
+      final duration = origEnd.difference(origStart);
+      final now      = DateTime.now();
+
+      var newStart = DateTime(now.year, now.month, now.day, origStart.hour, origStart.minute);
+      if (!newStart.isAfter(now)) {
+        // That time slot already happened today — push to the same time
+        // tomorrow instead of creating a task that starts in the past.
+        newStart = newStart.add(const Duration(days: 1));
+      }
+
+      startDatetime = newStart;
+      endDatetime   = newStart.add(duration);
+      shift         = newStart.difference(origStart);
+    }
+
+    // Steps — same relative timing, shifted by the same amount as the task.
+    for (final s in original.steps ?? <TaskStep>[]) {
+      steps.add(TaskFormStep(
+        title:       s.title ?? '',
+        description: s.description ?? '',
+        startDatetime: s.startDatetime != null ? s.startDatetime!.add(shift) : startDatetime,
+        endDatetime:   s.endDatetime   != null ? s.endDatetime!.add(shift)   : endDatetime,
+        latitude:  s.destinationLocation?.coordinates != null
+            ? s.destinationLocation!.coordinates![1] : null,
+        longitude: s.destinationLocation?.coordinates != null
+            ? s.destinationLocation!.coordinates![0] : null,
+        address:   s.destinationLocation?.address,
+        locationRadiusMeters: s.locationRadiusMeters ?? 100,
+        requirePhoto:         s.validations?.requirePhoto ?? false,
+        requireSignature:     s.validations?.requireSignature ?? false,
+        signatureFrom:        s.validations?.signatureFrom,
+        requireLocationCheck: s.validations?.requireLocationCheck ?? false,
+        requireLocationTrace: s.validations?.requireLocationTrace ?? trackLocation,
+      ));
+    }
+
+    // Pre-select the original assignee, but only if they're still a member
+    // of this room — they may have left since the task was created.
+    final originalAssigneeId = original.assignedTo?.id;
+    if (originalAssigneeId != null &&
+        roomMembers.any((m) => m.user?.id == originalAssigneeId)) {
+      selectedIds.add(originalAssigneeId);
+    }
+    isLoading = false;
     reloadData();
   }
 
