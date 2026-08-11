@@ -7,6 +7,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../../config/theme/app_pallete.dart';
+import '../../data/places_autocomplete_service.dart';
 
 class LocationPickerScreen extends StatefulWidget {
   final PickedLocation? initial;
@@ -27,7 +28,9 @@ class _LocationPickerScreenState extends State<LocationPickerScreen>
   bool _geocoding = false;
   bool _locating = false;
   bool _showSuggestions = false;
-  List<_Suggestion> _suggestions = [];
+  bool _searching = false;
+  List<PlaceSuggestion> _suggestions = [];
+  final _places = PlacesAutocompleteService();
   Timer? _debounce;
   late AnimationController _panelAnim;
   late Animation<double> _panelSlide;
@@ -37,6 +40,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen>
   @override
   void initState() {
     super.initState();
+    _places.newSession();
     _panelAnim = AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
     _panelSlide = CurvedAnimation(parent: _panelAnim, curve: Curves.easeOutCubic);
 
@@ -157,37 +161,54 @@ class _LocationPickerScreenState extends State<LocationPickerScreen>
       setState(() { _suggestions = []; _showSuggestions = false; });
       return;
     }
-    _debounce = Timer(const Duration(milliseconds: 600), () => _search(q));
+    _debounce = Timer(const Duration(milliseconds: 400), () => _search(q));
   }
 
   Future<void> _search(String q) async {
-    try {
-      final locs = await locationFromAddress(q);
-      final results = <_Suggestion>[];
-      for (final loc in locs.take(5)) {
-        try {
-          final marks = await placemarkFromCoordinates(loc.latitude, loc.longitude);
-          if (marks.isNotEmpty) {
-            final p = marks.first;
-            final label = [p.name, p.locality, p.administrativeArea, p.country]
-                .where((s) => s != null && s.isNotEmpty)
-                .join(', ');
-            results.add(_Suggestion(label, LatLng(loc.latitude, loc.longitude)));
-          }
-        } catch (_) {}
-      }
-      if (mounted) setState(() { _suggestions = results; _showSuggestions = results.isNotEmpty; });
-    } catch (_) {
-      if (mounted) setState(() => _showSuggestions = false);
-    }
+    setState(() => _searching = true);
+
+    final results = await _places.search(
+      q,
+      // Bias toward wherever the user is currently looking on the map —
+      // falls back to no bias (India-wide) if nothing's pinned/moved yet.
+      biasLat: _pinned?.latitude,
+      biasLng: _pinned?.longitude,
+    );
+
+    if (!mounted) return;
+    setState(() {
+      _suggestions = results;
+      _showSuggestions = results.isNotEmpty;
+      _searching = false;
+    });
   }
 
-  Future<void> _pickSuggestion(_Suggestion s) async {
-    _searchCtrl.text = s.label;
+  Future<void> _pickSuggestion(PlaceSuggestion s) async {
+    _searchCtrl.text = s.primaryText;
     _searchFocus.unfocus();
     setState(() => _showSuggestions = false);
-    await _pin(s.ll);
-    _mapCtrl?.animateCamera(CameraUpdate.newLatLngZoom(s.ll, 16));
+
+    setState(() => _geocoding = true);
+    final details = await _places.getPlaceDetails(s.placeId);
+    // Next search (if any) should start a brand-new billing session.
+    _places.newSession();
+
+    if (!mounted) return;
+
+    if (details == null) {
+      setState(() => _geocoding = false);
+      _showMsg('Could not load that place — please try another result');
+      return;
+    }
+
+    final ll = LatLng(details.latitude, details.longitude);
+    setState(() {
+      _pinned = ll;
+      _address = details.address.isNotEmpty ? details.address : s.fullText;
+      _geocoding = false;
+    });
+    _panelAnim.forward();
+    _mapCtrl?.animateCamera(CameraUpdate.newLatLngZoom(ll, 16));
   }
 
   void _showMsg(String msg) {
@@ -254,7 +275,8 @@ class _LocationPickerScreenState extends State<LocationPickerScreen>
                           onChanged: _onSearchChanged,
                           onClear: () {
                             _searchCtrl.clear();
-                            setState(() => _showSuggestions = false);
+                            _debounce?.cancel();
+                            setState(() { _showSuggestions = false; _searching = false; _suggestions = []; });
                           },
                           isDark: isDark,
                         ),
@@ -262,9 +284,10 @@ class _LocationPickerScreenState extends State<LocationPickerScreen>
                     ],
                   ),
                   // ── Suggestions dropdown
-                  if (_showSuggestions)
+                  if (_showSuggestions || _searching)
                     _SuggestionsPanel(
                       suggestions: _suggestions,
+                      loading: _searching,
                       onTap: _pickSuggestion,
                       isDark: isDark,
                     ),
@@ -408,16 +431,23 @@ class _SearchBar extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────
 
 class _SuggestionsPanel extends StatelessWidget {
-  final List<_Suggestion> suggestions;
-  final ValueChanged<_Suggestion> onTap;
+  final List<PlaceSuggestion> suggestions;
+  final bool loading;
+  final ValueChanged<PlaceSuggestion> onTap;
   final bool isDark;
 
-  const _SuggestionsPanel({required this.suggestions, required this.onTap, required this.isDark});
+  const _SuggestionsPanel({
+    required this.suggestions,
+    required this.onTap,
+    required this.isDark,
+    this.loading = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(top: 6),
+      constraints: const BoxConstraints(maxHeight: 280), // ~4-5 rows, scrolls beyond that
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1C1C2E) : Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -425,21 +455,46 @@ class _SuggestionsPanel extends StatelessWidget {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
-        child: Column(
-          children: suggestions.map((s) {
-            final isLast = s == suggestions.last;
-            return Column(
-              children: [
-                ListTile(
-                  dense: true,
-                  leading: const Icon(Icons.location_on_rounded, size: 18, color: Pallete.primaryColor),
-                  title: Text(s.label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500), maxLines: 2, overflow: TextOverflow.ellipsis),
-                  onTap: () => onTap(s),
-                ),
-                if (!isLast) Divider(height: 1, color: Colors.grey.withValues(alpha:0.1)),
-              ],
+        child: loading && suggestions.isEmpty
+            ? const Padding(
+          padding: EdgeInsets.symmetric(vertical: 18),
+          child: Center(
+            child: SizedBox(
+              width: 20, height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2.4, color: Pallete.primaryColor),
+            ),
+          ),
+        )
+            : ListView.separated(
+          shrinkWrap: true,
+          padding: EdgeInsets.zero,
+          itemCount: suggestions.length,
+          separatorBuilder: (_, __) =>
+              Divider(height: 1, color: Colors.grey.withValues(alpha:0.1)),
+          itemBuilder: (_, i) {
+            final s = suggestions[i];
+            return ListTile(
+              dense: true,
+              leading: const Icon(Icons.location_on_rounded, size: 18, color: Pallete.primaryColor),
+              title: Text(
+                s.primaryText,
+                style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              subtitle: s.secondaryText.isEmpty
+                  ? null
+                  : Text(
+                s.secondaryText,
+                style: TextStyle(
+                    fontSize: 12,
+                    color: (isDark ? Colors.white : Colors.black).withValues(alpha:0.5)),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              onTap: () => onTap(s),
             );
-          }).toList(),
+          },
         ),
       ),
     );
@@ -639,10 +694,4 @@ class _HintPill extends StatelessWidget {
     ),
     child: Text(text, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
   );
-}
-
-class _Suggestion {
-  final String label;
-  final LatLng ll;
-  const _Suggestion(this.label, this.ll);
 }

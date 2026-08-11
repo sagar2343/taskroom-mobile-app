@@ -1,15 +1,4 @@
 // lib/features/task/view/widgets/task_location_map_sheet.dart
-//
-//  Key fixes in this version:
-//  1. CRASH FIX — Replaced Completer<GoogleMapController> with a nullable
-//     GoogleMapController? field. On tab switch the old controller is disposed
-//     and the new onMapCreated callback stores the fresh one. Every call to
-//     _fitMap / animateCamera is guarded with a mounted + null check.
-//  2. SIMULTANEOUS ANIMATION — polyline trail and employee marker now update
-//     in the same setState call so they move together.
-//  3. REFRESH BUTTON — history panel has a refresh icon that reloads the trace.
-//  4. SMOOTH TAB SWITCH — _switchTab disposes WS, nulls the map controller,
-//     then awaits _load() so data is fetched before the map tries to fit.
 
 import 'dart:ui' as ui;
 

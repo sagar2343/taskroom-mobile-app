@@ -12,3 +12,6 @@ GeneratedPluginRegistrant.java
 key.properties
 **/*.keystore
 **/*.jks
+
+# Auto-generated from local.properties — never commit
+lib/config/generated/env_config.dart
