@@ -193,7 +193,7 @@ class _ManagerTaskDetailScreenState extends State<ManagerTaskDetailScreen> {
                   ),
                 ),
               ],
-              if (_c.task?.status == 'cancelled' || _c.task?.status == 'expired')
+              // if (_c.task?.status == 'cancelled' || _c.task?.status == 'expired')
                 Padding(
                   padding: const EdgeInsets.only(right: 12),
                   child: GestureDetector(

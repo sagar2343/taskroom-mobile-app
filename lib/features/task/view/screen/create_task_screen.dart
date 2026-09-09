@@ -347,6 +347,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                     badge: _controller.selectedIds.isNotEmpty ? '${_controller.selectedIds.length}' : null,
                     badgeColor: _controller.selectedIds.isNotEmpty ? const Color(0xFF10B981) : null,
                     isDark: isDark,
+                    isRefresh: true,
                     // child: _AssignSection(c: _controller),
                     child: _controller.isLoadingMembers
                         ? const Padding(
@@ -534,6 +535,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
     required bool isDark,
     String? badge,
     Color? badgeColor,
+    bool? isRefresh,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -580,6 +582,20 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                       ),
                       child: Text(badge, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w800)),
                     ),
+                  ],
+                  if (isRefresh ?? false)...[
+                    const Spacer(),
+                    GestureDetector(
+                      onTap: _controller.getRoomMembers,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Pallete.primaryColor.withValues(alpha:0.12),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(Icons.refresh, color: Pallete.primaryColor, size: 16),
+                      ),
+                    )
                   ],
                 ],
               ),

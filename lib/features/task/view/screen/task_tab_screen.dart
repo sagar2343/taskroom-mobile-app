@@ -134,8 +134,7 @@ class _TasksTabScreenState extends State<TasksTabScreen> {
         return TaskCardWidget(
           task: task,
           isManager: _controller.isManager,
-          onRecreate: (task.status == 'cancelled' || task.status == 'expired')
-              ? () {
+          onRecreate: () {
             Navigator.push(context, MaterialPageRoute(
               builder: (_) => CreateTaskScreen(
                 roomId: widget.roomId,
@@ -145,8 +144,20 @@ class _TasksTabScreenState extends State<TasksTabScreen> {
               ),
               fullscreenDialog: true,
             ));
-          }
-              : null,
+          },
+          // onRecreate: (task.status == 'cancelled' || task.status == 'expired')
+          //     ? () {
+          //   Navigator.push(context, MaterialPageRoute(
+          //     builder: (_) => CreateTaskScreen(
+          //       roomId: widget.roomId,
+          //       roomName: 'ROOM NAME',
+          //       recreateFrom: task,
+          //       onTaskCreated: () => _controller.onRefresh(),
+          //     ),
+          //     fullscreenDialog: true,
+          //   ));
+          // }
+          //     : null,
           onTap: () {
             final route = _controller.isManager
                 ? MaterialPageRoute(

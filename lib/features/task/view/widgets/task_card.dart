@@ -174,9 +174,7 @@ class TaskCardWidget extends StatelessWidget {
                   ),
 
                   // ── Recreate action (manager only, cancelled/expired tasks only)
-                  if (isManager &&
-                      onRecreate != null &&
-                      (task.status == 'cancelled' || task.status == 'expired')) ...[
+                  if (isManager && onRecreate != null) ...[
                     const SizedBox(height: 10),
                     GestureDetector(
                       onTap: onRecreate,
