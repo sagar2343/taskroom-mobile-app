@@ -497,7 +497,18 @@ class _ManagerTaskDetailScreenState extends State<ManagerTaskDetailScreen> {
 
   Widget _buildLocationCard(TaskModel task, bool isDark) {
     final isActive    = _c.isActive;
-    final isCompleted = task.status == 'completed';
+    // final isCompleted = task.status == 'completed';
+
+    // "Full Route" should only appear once GPS was actually recorded for
+    // this task — that only happens for a field-work STEP that has at
+    // least reached 'reached' or 'completed'. A task can be marked
+    // isFieldWork at the task level yet have zero field-work steps done
+    // (e.g. all steps so far were office-only), in which case there is no
+    // route to show — checking task.status alone (isActive/isCompleted)
+    // doesn't tell us that; we need to look at the actual steps.
+    final hasFieldWorkProgress = (task.steps ?? []).any((s) =>
+    s.isFieldWorkStep == true &&
+        (s.status == 'reached' || s.status == 'completed'));
 
     return _Card(isDark: isDark, child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -519,11 +530,12 @@ class _ManagerTaskDetailScreenState extends State<ManagerTaskDetailScreen> {
               ),
             )),
 
-          // if (isActive && isCompleted)
-          const SizedBox(width: 5),
+          if (isActive && hasFieldWorkProgress)
+            const SizedBox(width: 5),
 
-          // Route trace button (always available once task started)
-          if (isActive || isCompleted)
+          // Route trace button — only once at least one field-work step
+          // has actually reached/completed (see hasFieldWorkProgress above).
+          if (hasFieldWorkProgress)
             Expanded(child: _LocationButton(
               icon: Icons.route_rounded,
               label: 'Full Route',
@@ -550,7 +562,9 @@ class _ManagerTaskDetailScreenState extends State<ManagerTaskDetailScreen> {
             Expanded(child: Text(
               isActive
                   ? 'GPS pings will update while the task is active.'
-                  : 'The task is complete. View the full recorded route below.',
+                  : hasFieldWorkProgress
+                  ? 'The task is complete. View the full recorded route below.'
+                  : 'No field-work steps have recorded GPS data yet.',
               style: TextStyle(
                   fontSize: 11,
                   color: Colors.grey.withValues(alpha: 0.6),
