@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import '../../../widgets/image_preview.dart';
 import '../../model/task_form_models.dart';
 import '../../model/task_model.dart';
+import '../widgets/voice_note_player.dart';
+import '../widgets/voice_note_recorder.dart';
 
 class CreateTaskScreen extends StatefulWidget {
   final String roomId;
@@ -98,6 +100,39 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                           // isDark: isDark,
                           maxLines: 3,
                         ),
+
+                        const SizedBox(height: 14),
+
+                        // Voice note — carried over from a recreated task
+                        // (play / remove), otherwise record a new one
+                        if (_controller.carriedVoiceNote?.url != null &&
+                            !_controller.carriedVoiceNoteRemoved &&
+                            _controller.voiceNoteFile == null) ...[
+                          _formLbl('VOICE NOTE'),
+                          Row(children: [
+                            Expanded(
+                              child: VoiceNotePlayer(
+                                url: _controller.carriedVoiceNote!.url!,
+                                durationSeconds:
+                                _controller.carriedVoiceNote!.durationSeconds,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            IconButton(
+                              onPressed: _controller.removeCarriedVoiceNote,
+                              tooltip: 'Remove voice note',
+                              icon: const Icon(Icons.delete_outline_rounded,
+                                  color: Pallete.kRed),
+                            ),
+                          ]),
+                        ] else
+                          VoiceNoteRecorder(
+                            initialFile: _controller.voiceNoteFile,
+                            initialDuration: _controller.voiceNoteDuration,
+                            onChanged: _controller.onVoiceNoteChanged,
+                            onRecordingChanged: (r) =>
+                            _controller.isVoiceRecording = r,
+                          ),
 
                         const SizedBox(height: 16),
 

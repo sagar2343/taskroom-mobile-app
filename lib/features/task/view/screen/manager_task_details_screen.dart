@@ -9,6 +9,7 @@ import 'package:field_work/features/task/view/screen/create_task_screen.dart';
 import 'package:field_work/features/task/view/widgets/task_location_map_sheet.dart';
 import 'package:flutter/material.dart';
 import '../../../widgets/image_preview.dart';
+import 'package:field_work/features/task/view/widgets/voice_note_player.dart';
 
 class ManagerTaskDetailScreen extends StatefulWidget {
   final String taskId;
@@ -318,6 +319,15 @@ class _ManagerTaskDetailScreenState extends State<ManagerTaskDetailScreen> {
                 // ── Note ───────────────────────────────────────────────
                 if (task.note?.isNotEmpty == true) ...[
                   _buildNoteCard(task, isDark),
+                  const SizedBox(height: 12),
+                ],
+
+                // ── Voice note ─────────────────────────────────────────
+                if (task.voiceNote?.url != null) ...[
+                  VoiceNotePlayer(
+                    url: task.voiceNote!.url!,
+                    durationSeconds: task.voiceNote!.durationSeconds,
+                  ),
                   const SizedBox(height: 12),
                 ],
 

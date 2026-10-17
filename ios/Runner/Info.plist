@@ -7,6 +7,9 @@
 	<key>CFBundleDisplayName</key>
 	<string>Task Room</string>
 
+    <key>NSMicrophoneUsageDescription</key>
+    <string>TaskRoom uses the microphone so managers can record voice notes for tasks.</string>
+
     <key>NSUserNotificationUsageDescription</key>
     <string>We send notifications to keep you updated on task assignments and alerts</string>
 

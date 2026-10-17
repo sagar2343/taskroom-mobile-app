@@ -58,6 +58,7 @@ const APIRouteFcmUrl               = '/api/fcm/fcm-token';
 const APIRouteUploadProfilePicture = '/api/upload/profile-picture';
 const APIRouteUploadStepPhoto      = '/api/upload/step-photo';
 const APIRouteUploadRoomImage      = '/api/upload/room-image';
+const APIRouteUploadTaskVoiceNote  = '/api/upload/task-voice-note';
 
 // ── NEW: Billing ──────────────────────────────────────────────────────
 /// Public — returns plan catalogue with pricing

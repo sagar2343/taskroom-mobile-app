@@ -1,3 +1,5 @@
+import 'voice_note.dart';
+
 class TaskModel {
   final String? id;
   final String? organization;
@@ -10,6 +12,7 @@ class TaskModel {
   final DateTime? startDatetime;
   final DateTime? endDatetime;
   final bool? isFieldWork;
+  final VoiceNote? voiceNote;
   final List<TaskStep>? steps;
   final int? currentStepIndex;
   final int? totalSteps;
@@ -40,6 +43,7 @@ class TaskModel {
     this.startDatetime,
     this.endDatetime,
     this.isFieldWork,
+    this.voiceNote,
     this.steps,
     this.currentStepIndex,
     this.totalSteps,
@@ -82,6 +86,9 @@ class TaskModel {
           ? DateTime.tryParse(json['endDatetime'])?.toLocal()
           : null,
       isFieldWork: json['isFieldWork'],
+      voiceNote: (json['voiceNote'] is Map && json['voiceNote']['url'] != null)
+          ? VoiceNote.fromJson(Map<String, dynamic>.from(json['voiceNote']))
+          : null,
       steps: json['steps'] != null
           ? List<TaskStep>.from(
         json['steps'].map((e) => TaskStep.fromJson(e)),
@@ -131,6 +138,7 @@ class TaskModel {
       'startDatetime': startDatetime?.toUtc().toIso8601String(),
       'endDatetime': endDatetime?.toUtc().toIso8601String(),
       'isFieldWork': isFieldWork,
+      'voiceNote': voiceNote?.toJson(),
       'steps': steps?.map((e) => e.toJson()).toList(),
       'currentStepIndex': currentStepIndex,
       'totalSteps': totalSteps,

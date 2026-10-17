@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:field_work/config/theme/app_pallete.dart';
+import 'package:field_work/services/upload_service.dart';
 import 'package:flutter/material.dart';
 import '../../../core/utils/helpers.dart';
 import '../../../services/review_helper.dart';
@@ -6,6 +8,7 @@ import '../../member/data/member_datasource.dart';
 import '../../member/model/room_member_response.dart';
 import '../data/manager_task_datasource.dart';
 import '../model/task_form_models.dart';
+import '../model/voice_note.dart';
 import '../model/task_model.dart';
 import '../view/widgets/step_form_sheet.dart';
 
@@ -39,6 +42,32 @@ class CreateTaskController {
   final List<TaskFormStep> steps       = [];
   List<RoomMemberItem>     roomMembers = [];
   final Set<String>        selectedIds = {};
+
+  // ── Voice note (optional) ────────────────────────────────────────────────
+  // The recorded file stays local until submit(); it is uploaded then, and
+  // the uploaded result is cached so a retry after a failed create doesn't
+  // upload the same audio twice.
+  File?      voiceNoteFile;
+  int        voiceNoteDuration = 0;
+  bool       isVoiceRecording  = false;
+  VoiceNote? _uploadedVoiceNote;
+
+  // Recreate Task: the original task's voice note (already uploaded, so it
+  // is re-used by URL — no re-upload). The manager can remove it or record a
+  // new one instead.
+  VoiceNote? carriedVoiceNote;
+  bool       carriedVoiceNoteRemoved = false;
+
+  void removeCarriedVoiceNote() {
+    carriedVoiceNoteRemoved = true;
+    reloadData();
+  }
+
+  void onVoiceNoteChanged(File? file, int seconds) {
+    voiceNoteFile      = file;
+    voiceNoteDuration  = seconds;
+    _uploadedVoiceNote = null;
+  }
 
   CreateTaskController({
     required this.context,
@@ -79,6 +108,8 @@ class CreateTaskController {
     noteCtrl.text  = original.note  ?? '';
     priority       = original.priority ?? 'medium';
     trackLocation  = original.isFieldWork ?? false;
+    carriedVoiceNote =
+    original.voiceNote?.url != null ? original.voiceNote : null;
 
     Duration shift = Duration.zero;
 
@@ -291,10 +322,33 @@ class CreateTaskController {
       return;
     }
 
+    if (isVoiceRecording) {
+      Helpers.showSnackBar(context, 'Please stop the voice recording first.',
+          type: SnackType.error);
+      return;
+    }
+
     isSubmitting = true;
     reloadData();
 
     try {
+      // Upload the voice note first (if any). If it fails we stop here with
+      // a clear message rather than silently creating the task without it.
+      if (voiceNoteFile != null && _uploadedVoiceNote == null) {
+        _uploadedVoiceNote = await UploadService.uploadTaskVoiceNote(
+          voiceNoteFile!,
+          fallbackDurationSeconds: voiceNoteDuration,
+        );
+        if (_uploadedVoiceNote == null) {
+          Helpers.showSnackBar(
+            context,
+            'Could not upload the voice note. Check your connection and try again.',
+            type: SnackType.error,
+          );
+          return;
+        }
+      }
+
       final body = {
         'roomId':         roomId,
         'title':          titleCtrl.text.trim(),
@@ -306,6 +360,14 @@ class CreateTaskController {
         'isFieldWork':    trackLocation,
         'assignedTo':     selectedIds.toList(),
         'steps':          steps.map((s) => s.toApiJson()).toList(),
+        // A newly recorded note wins; otherwise re-use the recreated task's
+        // note unless the manager removed it.
+        if (voiceNoteFile != null
+            ? _uploadedVoiceNote != null
+            : (!carriedVoiceNoteRemoved && carriedVoiceNote != null))
+          'voiceNote': (voiceNoteFile != null
+              ? _uploadedVoiceNote!
+              : carriedVoiceNote!).toJson(),
       };
 
       final response = await _dataSource.createTask(body);

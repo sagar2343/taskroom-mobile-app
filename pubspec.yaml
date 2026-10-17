@@ -2,7 +2,7 @@ name: field_work
 description: "A new Flutter project."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.0.18+20
+version: 1.0.19+21
 
 environment:
   sdk: ^3.8.1
@@ -44,6 +44,8 @@ dependencies:
   firebase_crashlytics: ^5.2.2
   package_info_plus: ^9.0.1
   in_app_update: ^4.2.5
+  record: ^6.2.1
+  audioplayers: 6.4.0
 
 dev_dependencies:
   flutter_test:

@@ -5,6 +5,9 @@ import 'package:field_work/features/task/model/task_model.dart';
 import 'package:field_work/features/widgets/custom_textfield.dart';
 import 'package:flutter/material.dart';
 
+import '../widgets/voice_note_player.dart';
+import '../widgets/voice_note_recorder.dart';
+
 class EditTaskScreen extends StatefulWidget {
   final String taskId;
   final VoidCallback? onTaskUpdated;
@@ -147,6 +150,35 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
                       hint: 'Extra instructions for the employee...',
                       maxLines: 3,
                     ),
+
+                    const SizedBox(height: 14),
+
+                    // Voice note — play / remove the existing one, or record a new one
+                    if (_c.existingVoiceNote?.url != null &&
+                        !_c.voiceNoteRemoved) ...[
+                      _formLbl('VOICE NOTE'),
+                      Row(children: [
+                        Expanded(
+                          child: VoiceNotePlayer(
+                            url: _c.existingVoiceNote!.url!,
+                            durationSeconds: _c.existingVoiceNote!.durationSeconds,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton(
+                          onPressed: _c.removeExistingVoiceNote,
+                          tooltip: 'Remove voice note',
+                          icon: const Icon(Icons.delete_outline_rounded,
+                              color: Pallete.kRed),
+                        ),
+                      ]),
+                    ] else
+                      VoiceNoteRecorder(
+                        initialFile: _c.newVoiceNoteFile,
+                        initialDuration: _c.newVoiceNoteDuration,
+                        onChanged: _c.onVoiceNoteChanged,
+                        onRecordingChanged: (r) => _c.isVoiceRecording = r,
+                      ),
 
                     const SizedBox(height: 16),
 

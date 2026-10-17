@@ -6,6 +6,7 @@ import 'package:field_work/core/http_client/http_client.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import '../model/TaskDetailResponse.dart';
+import '../model/voice_note.dart';
 
 /// All manager-side task API calls live here.
 /// TaskActionDataSource (employee-only) no longer contains any manager methods.
@@ -102,8 +103,12 @@ class ManagerTaskDatasource {
   Future<Map<String, dynamic>?> editTask(String taskId, {
     String? title, String? note, String? priority,
     String? startDatetime, String? endDatetime, String? assignedTo,
+    VoiceNote? voiceNote,          // set / replace the voice note
+    bool removeVoiceNote = false,  // clear the existing voice note
   }) => _put(APIRouteTaskEdit, {
     'taskId': taskId,
+    if (removeVoiceNote) 'voiceNote': null
+    else if (voiceNote != null) 'voiceNote': voiceNote.toJson(),
     if (title         != null) 'title':         title,
     if (note          != null) 'note':           note,
     if (priority      != null) 'priority':       priority,

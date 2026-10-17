@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:field_work/config/theme/app_pallete.dart';
 import 'package:field_work/core/utils/helpers.dart';
 import 'package:field_work/features/task/data/manager_task_datasource.dart';
@@ -5,6 +7,9 @@ import 'package:field_work/features/task/model/task_form_models.dart';
 import 'package:field_work/features/task/model/task_model.dart';
 import 'package:field_work/features/task/view/widgets/step_form_sheet.dart';
 import 'package:flutter/material.dart';
+
+import '../../../services/upload_service.dart';
+import '../model/voice_note.dart';
 
 // ═══════════════════════════════════════════════════════════════════════
 //  STEP EDIT STATE
@@ -100,6 +105,29 @@ class EditTaskController {
   /// Pending new steps that haven't been saved yet.
   final List<TaskFormStep> newSteps = [];
 
+  // ── Voice note ──────────────────────────────────────────────────────────
+  // existingVoiceNote = what the server has now. The manager can remove it
+  // (voiceNoteRemoved) and/or record a new one (newVoiceNoteFile). A new
+  // recording is uploaded only on save(), and cached so a retry after a
+  // partial failure doesn't upload the same audio twice.
+  VoiceNote? existingVoiceNote;
+  bool       voiceNoteRemoved     = false;
+  File?      newVoiceNoteFile;
+  int        newVoiceNoteDuration = 0;
+  bool       isVoiceRecording     = false;
+  VoiceNote? _uploadedNewVoiceNote;
+
+  void removeExistingVoiceNote() {
+    voiceNoteRemoved = true;
+    reloadData();
+  }
+
+  void onVoiceNoteChanged(File? file, int seconds) {
+    newVoiceNoteFile      = file;
+    newVoiceNoteDuration  = seconds;
+    _uploadedNewVoiceNote = null;
+  }
+
   EditTaskController({
     required this.context,
     required this.reloadData,
@@ -135,6 +163,12 @@ class EditTaskController {
     trackLocation  = t.isFieldWork   ?? false;
     startDatetime  = t.startDatetime;
     endDatetime    = t.endDatetime;
+
+    existingVoiceNote     = t.voiceNote;
+    voiceNoteRemoved      = false;
+    newVoiceNoteFile      = null;
+    newVoiceNoteDuration  = 0;
+    _uploadedNewVoiceNote = null;
 
     stepStates.clear();
     for (final step in t.steps ?? <TaskStep>[]) {
@@ -359,11 +393,32 @@ class EditTaskController {
     final err = _validate();
     if (err != null) { snack(err); return; }
 
+    if (isVoiceRecording) {
+      snack('Please stop the voice recording first.');
+      return;
+    }
+
     isSaving = true;
     reloadData();
 
     try {
       final errors = <String>[];
+
+      // ── 0. Upload a newly recorded voice note (if any) ───────────────
+      // Done first: if it fails we stop here with a clear message instead
+      // of saving everything else and silently dropping the audio.
+      if (newVoiceNoteFile != null && _uploadedNewVoiceNote == null) {
+        _uploadedNewVoiceNote = await UploadService.uploadTaskVoiceNote(
+          newVoiceNoteFile!,
+          fallbackDurationSeconds: newVoiceNoteDuration,
+        );
+        if (_uploadedNewVoiceNote == null) {
+          isSaving = false;
+          reloadData();
+          snack('Could not upload the voice note. Check your connection and try again.');
+          return;
+        }
+      }
 
       // ── 1. Update task-level fields ──────────────────────────────────
       final taskRes = await ds.editTask(
@@ -373,6 +428,12 @@ class EditTaskController {
         priority:      priority,
         startDatetime: isPending ? startDatetime?.toUtc().toIso8601String() : null,
         endDatetime:   endDatetime?.toUtc().toIso8601String(),
+        // New recording replaces the old one; otherwise, if the manager
+        // removed the existing note, clear it; otherwise leave it untouched.
+        voiceNote:       _uploadedNewVoiceNote,
+        removeVoiceNote: _uploadedNewVoiceNote == null &&
+            voiceNoteRemoved &&
+            existingVoiceNote != null,
       );
       if (taskRes?['success'] != true) {
         errors.add('Task fields: ${taskRes?['message'] ?? 'Update failed'}');

@@ -7,6 +7,7 @@ import '../../../../config/theme/app_pallete.dart';
 import '../../../task/model/task_model.dart';
 import '../../../task/view/widgets/signature_pad.dart';
 import '../../../widgets/animated_screen_wrapper.dart';
+import '../../../task/view/widgets/voice_note_player.dart';
 
 class EmployeeTaskDetailScreen extends StatefulWidget {
   final String taskId;
@@ -402,7 +403,19 @@ class _EmployeeTaskDetailScreenState extends State<EmployeeTaskDetailScreen> {
                   ),
                 ),
               ),
-      
+
+            /// MANAGER VOICE NOTE
+            if (task.voiceNote?.url != null)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                  child: VoiceNotePlayer(
+                    url: task.voiceNote!.url!,
+                    durationSeconds: task.voiceNote!.durationSeconds,
+                  ),
+                ),
+              ),
+
             /// STEPS HEADER
             SliverToBoxAdapter(
               child: Padding(

@@ -5,8 +5,6 @@ import 'package:field_work/features/task/data/manager_task_datasource.dart';
 import 'package:field_work/features/task/model/task_model.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-// import 'package:latlong2/latlong.dart';
-
 
 /// Holds all state and business logic for [ManagerTaskDetailScreen].
 class ManagerTaskDetailController {
